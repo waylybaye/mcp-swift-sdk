@@ -10,13 +10,32 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build_and_test:
 
-    runs-on: macos-latest
+    # TODO: once https://github.com/swift-actions/setup-swift/pull/684 is merged, revert to:
+
+    # runs-on: macos-latest
+    # steps:
+    # - uses: swift-actions/setup-swift@v2
+    # with:
+    #   swift-version: "6.0.1"
+
+    runs-on: macos-15
 
     steps:
+    - name: Get swift version
+      run: swift --version
     - uses: actions/checkout@v4
     - name: Build
-      run: swift build -v
+      run: swift build -q
     - name: Run tests
-      run: swift test -v
+      run: swift test -q
+
+  lint:
+    runs-on: macos-15
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run linter
+      run: swift package --allow-writing-to-package-directory format
+    - name: Verify that `swift package --allow-writing-to-package-directory format` did not change outputs (if it did, please re-run it and re-commit!)
+      run: git diff --exit-code
