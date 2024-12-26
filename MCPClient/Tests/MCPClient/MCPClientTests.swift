@@ -21,7 +21,7 @@ class MCPClientTest {
       roots: .init(listChanged: true),
       sampling: .init())
 
-    connection = try! MockMCPConnection(
+    connection = try! MockMCPClientConnection(
       info: .init(name: name, version: version),
       capabilities: capabilities)
 
@@ -47,20 +47,18 @@ class MCPClientTest {
   let version: String
   let capabilities: ClientCapabilities
   let name: String
-  let connection: MockMCPConnection
+  let connection: MockMCPClientConnection
 
   func createMCPClient(
-    name: String? = nil,
-    version: String? = nil,
-    capabilities: ClientCapabilities? = nil,
-    serverInfo _: RunnableServerConfiguration? = nil,
-    getMcpConnection: (() -> MCPConnectionInterface)? = nil)
+    samplingRequestHandler: SamplingRequestHandler? = nil,
+    listRootRequestHandler: ListRootsRequestHandler? = nil,
+    connection: MCPClientConnectionInterface? = nil)
     async throws -> MCPClient
   {
     try await MCPClient(
-      info: .init(name: name ?? self.name, version: version ?? self.version),
-      capabilities: capabilities ?? self.capabilities,
-      getMcpConnection: getMcpConnection ?? { self.connection })
+      samplingRequestHandler: samplingRequestHandler,
+      listRootRequestHandler: listRootRequestHandler,
+      connection: connection ?? self.connection)
   }
 
 }

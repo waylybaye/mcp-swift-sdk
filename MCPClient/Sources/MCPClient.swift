@@ -3,6 +3,9 @@ import Combine
 import Foundation
 import MCPShared
 
+public typealias SamplingRequestHandler = ((CreateMessageRequest.Params) async throws -> CreateMessageRequest.Result)
+public typealias ListRootsRequestHandler = ((ListRootsRequest.Params?) async throws -> ListRootsRequest.Result)
+
 // MARK: - MCPClient
 
 public actor MCPClient: MCPClientInterface {
@@ -11,26 +14,30 @@ public actor MCPClient: MCPClientInterface {
 
   public init(
     info: Implementation,
-    capabilities: ClientCapabilities,
-    transport: Transport)
+    transport: Transport,
+    capabilities: ClientCapabilityHandlers = .init())
   async throws {
     try await self.init(
-      info: info,
-      capabilities: capabilities,
-      getMcpConnection: { try MCPConnection(
+      samplingRequestHandler: capabilities.sampling?.handler,
+      listRootRequestHandler: capabilities.roots?.handler,
+      connection: try MCPClientConnection(
         info: info,
-        capabilities: capabilities,
-        transport: transport) })
+        capabilities: ClientCapabilities(
+          experimental: nil, // TODO: support experimental requests
+          roots: capabilities.roots?.info,
+          sampling: capabilities.sampling?.info),
+        transport: transport))
   }
 
   init(
-    info _: Implementation,
-    capabilities _: ClientCapabilities,
-    getMcpConnection: @escaping () throws -> MCPConnectionInterface)
+    samplingRequestHandler: SamplingRequestHandler? = nil,
+    listRootRequestHandler: ListRootsRequestHandler? = nil,
+    connection: MCPClientConnectionInterface)
   async throws {
-    self.getMcpConnection = getMcpConnection
-
     // Initialize the connection, and then update server capabilities.
+    self.connection = connection
+    self.samplingRequestHandler = samplingRequestHandler
+    self.listRootRequestHandler = listRootRequestHandler
     try await connect()
     Task { try await self.updateTools() }
     Task { try await self.updatePrompts() }
@@ -111,13 +118,20 @@ public actor MCPClient: MCPClientInterface {
     return try await connectionInfo.connection.readResource(.init(uri: uri))
   }
 
+  // MARK: Internal
+
+  let connection: MCPClientConnectionInterface
+
   // MARK: Private
 
   private struct ConnectionInfo {
-    let connection: MCPConnectionInterface
+    let connection: MCPClientConnectionInterface
     let serverInfo: Implementation
     let serverCapabilities: ServerCapabilities
   }
+
+  private let samplingRequestHandler: SamplingRequestHandler?
+  private let listRootRequestHandler: ListRootsRequestHandler?
 
   private var connectionInfo: ConnectionInfo?
 
@@ -125,8 +139,6 @@ public actor MCPClient: MCPClientInterface {
   private let _prompts = CurrentValueSubject<ServerCapabilityState<[Prompt]>?, Never>(nil)
   private let _resources = CurrentValueSubject<ServerCapabilityState<[Resource]>?, Never>(nil)
   private let _resourceTemplates = CurrentValueSubject<ServerCapabilityState<[ResourceTemplate]>?, Never>(nil)
-
-  private let getMcpConnection: () throws -> MCPConnectionInterface
 
   private var progressHandlers = [String: (progress: Double, total: Double?) -> Void]()
 
@@ -158,6 +170,52 @@ public actor MCPClient: MCPClientInterface {
 
         case .resourceUpdated:
           break
+        }
+      }
+    }
+  }
+
+  private func startListeningToRequests() async throws {
+    let connectionInfo = try getConnectionInfo()
+    let requests = await connectionInfo.connection.requestsToHandle
+    Task { [weak self] in
+      for await(request, completion) in requests {
+        guard let self else {
+          completion(.failure(.init(
+            code: JRPCErrorCodes.internalError.rawValue,
+            message: "The client disconnected")))
+          return
+        }
+        switch request {
+        case .createMessage(let params):
+          if let handler = await self.samplingRequestHandler {
+            do {
+              completion(.success(try await handler(params)))
+            } catch {
+              completion(.failure(.init(
+                code: JRPCErrorCodes.internalError.rawValue,
+                message: error.localizedDescription)))
+            }
+          } else {
+            completion(.failure(.init(
+              code: JRPCErrorCodes.invalidRequest.rawValue,
+              message: "Sampling is not supported by this client")))
+          }
+
+        case .listRoots(let params):
+          if let handler = await self.listRootRequestHandler {
+            do {
+              completion(.success(try await handler(params)))
+            } catch {
+              completion(.failure(.init(
+                code: JRPCErrorCodes.internalError.rawValue,
+                message: error.localizedDescription)))
+            }
+          } else {
+            completion(.failure(.init(
+              code: JRPCErrorCodes.invalidRequest.rawValue,
+              message: "Listing roots is not supported by this client")))
+          }
         }
       }
     }
@@ -212,19 +270,19 @@ public actor MCPClient: MCPClientInterface {
   }
 
   private func connect() async throws {
-    let mcpConnection = try getMcpConnection()
-    let response = try await mcpConnection.initialize()
+    let response = try await connection.initialize()
     guard response.protocolVersion == MCP.protocolVersion else {
       throw MCPClientError.versionMismatch
     }
 
     connectionInfo = ConnectionInfo(
-      connection: mcpConnection,
+      connection: connection,
       serverInfo: response.serverInfo,
       serverCapabilities: response.capabilities)
 
-    try await mcpConnection.acknowledgeInitialization()
+    try await connection.acknowledgeInitialization()
     try await startListeningToNotifications()
+    try await startListeningToRequests()
     startPinging()
   }
 
