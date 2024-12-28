@@ -52,8 +52,12 @@ public enum SwiftTestingUtils {
       try await withCheckedThrowingContinuation { continuation in
         onFulfill = {
           if !hasTimedOut {
-            hasCompleted = true
-            continuation.resume(returning: ())
+            if hasCompleted {
+              Issue.record("Expectation \(description) fulfilled multiple times.")
+            } else {
+              hasCompleted = true
+              continuation.resume(returning: ())
+            }
           } else {
             logger.error("Expectation \(description) fulfilled after timeout.")
           }
@@ -90,13 +94,17 @@ public func expectation(description: String, _sourceLocation: SourceLocation = #
 }
 
 /// Wait for an expectation to be fulfilled, or throw an error after the timeout.
-public func fulfillment(of expectation: SwiftTestingUtils.Expectation, timeout: TimeInterval = 10) async throws {
+public func fulfillment(of expectation: SwiftTestingUtils.Expectation, timeout: TimeInterval = 1) async throws {
   try await expectation.fulfillment(timeout: timeout)
 }
 
 /// Wait for the expectations to be fulfilled, or throw an error after the timeout.
-public func fulfillment(of expectations: [SwiftTestingUtils.Expectation], timeout: TimeInterval = 10) async throws {
+public func fulfillment(of expectations: [SwiftTestingUtils.Expectation], timeout: TimeInterval = 1) async throws {
   for expectation in expectations {
     try await expectation.fulfillment(timeout: timeout)
   }
 }
+
+// MARK: - Issue + Error
+
+extension Issue: @retroactive Error { }

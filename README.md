@@ -1,4 +1,4 @@
-# MCP Swift SDK (Client only for now)!
+# MCP Swift SDK!
 
 [![Build & Deploy](https://github.com/gsabran/mcp-swift-sdk/actions/workflows/swift.yml/badge.svg)](https://github.com/gsabran/mcp-swift-sdk/actions/workflows/swift.yml)
 [![Coverage Statusodecov](https://codecov.io/gh/gsabran/mcp-swift-sdk/graph/badge.svg?token=8QH4WQMLW7)](https://codecov.io/gh/gsabran/mcp-swift-sdk)
@@ -25,20 +25,55 @@ The Model Context Protocol allows applications to provide context for LLMs in a 
    .package(url: "https://github.com/gsabran/mcp-swift-sdk", from: "0.0.1")
  ]
 ```
-And then add the product to all targets that use the dependency:
-```swift
+And then add the product that you need to all targets that use the dependency:
+```swiftx
+.product(name: "MCPServer", package: "mcp-swift-sdk"),
+// and/or
 .product(name: "MCPClient", package: "mcp-swift-sdk"),
 ```
 
 ## Quick Start
 
+### Creating a Server
+```swift
+import MCPServer
+
+let server = try await MCPServer(
+  info: Implementation(name: "test-server", version: "1.0.0"),
+  capabilities: .init(...),
+  transport: .stdio())
+
+// The client's roots, if available.  
+let roots = await server.roots.value
+
+// Keep the process running until the client disconnects.
+try await server.waitForDisconnection()
+```
+
+#### Tool calling
+The tool input schema can be generated for you (thanks [swift-json-schema](https://github.com/ajevans99/swift-json-schema)!)
+
+```swift
+import JSONSchemaBuilder
+
+@Schemable
+struct ToolInput {
+  let text: String
+}
+
+let capabilities = ServerCapabilityHandlers(tools: [
+  Tool(name: "repeat") { (input: ToolInput) in
+    [.text(.init(text: input.text))]
+  },
+])
+```
+
 ### Creating a Client
 
 ```swift
 import MCPClient
-import JSONRPC
 
-let transport = try DataChannel.stdioProcess(
+let transport = try Transport.stdioProcess(
   serverInfo.executable,
   args: serverInfo.args,
   env: serverInfo.env)
