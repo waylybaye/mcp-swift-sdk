@@ -1,5 +1,5 @@
 
-import MCPShared
+import MCPInterface
 
 #if DEBUG
 // TODO: move to a test helper package
@@ -84,6 +84,9 @@ class MockMCPClientConnection: MCPClientConnectionInterface {
 
   /// This function is called when `log` is called
   var logStub: ((LoggingMessageNotification.Params) async throws -> Void)?
+
+  /// This function is called when `notifyRootsListChanged` is called
+  var notifyRootsListChangedStub: (() async throws -> Void)?
 
   func initialize() async throws -> InitializeRequest.Result {
     if let initializeStub {
@@ -189,15 +192,17 @@ class MockMCPClientConnection: MCPClientConnectionInterface {
     }
     throw MockMCPClientConnectionError.notImplemented(function: "log")
   }
+
+  func notifyRootsListChanged() async throws {
+    if let notifyRootsListChangedStub {
+      return try await notifyRootsListChangedStub()
+    }
+    throw MockMCPClientConnectionError.notImplemented(function: "notifyRootsListChanged")
+  }
+
 }
 
 enum MockMCPClientConnectionError: Error {
   case notImplemented(function: String)
-}
-
-extension Transport {
-  static var noop: Transport {
-    .init(writeHandler: { _ in }, dataSequence: DataSequence { _ in })
-  }
 }
 #endif

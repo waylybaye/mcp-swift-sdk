@@ -1,14 +1,10 @@
 
 import JSONRPC
-import MCPShared
-
-public typealias AnyJRPCResponse = Swift.Result<Encodable & Sendable, AnyJSONRPCResponseError>
-
-public typealias HandleServerRequest = (ServerRequest, (AnyJRPCResponse) -> Void)
+import MCPInterface
 
 // MARK: - MCPClientConnectionInterface
 
-/// The MCP JRPC Bridge is a stateless interface to the MCP server that provides a higher level Swift interface.
+/// This is a stateless interface to the MCP server that provides a higher level Swift interface.
 /// It does not implement any of the stateful behaviors of the MCP server, such as subscribing to changes, detecting connection health,
 /// ensuring that the connection has been initialized before being used etc.
 ///
@@ -59,6 +55,13 @@ public protocol MCPClientConnectionInterface {
   func requestCompletion(_ params: CompleteRequest.Params) async throws -> CompleteRequest.Result
   /// Set the log level that the server should use for this connection.
   func setLogLevel(_ params: SetLevelRequest.Params) async throws -> SetLevelRequest.Result
-  /// Log a message to the server.
-  func log(_ params: LoggingMessageNotification.Params) async throws
+  /// Send a roots list updated notification to the server
+  func notifyRootsListChanged() async throws
+}
+
+// MARK: - ServerInfo
+
+public struct ServerInfo {
+  public let info: Implementation
+  public let capabilities: ServerCapabilities
 }

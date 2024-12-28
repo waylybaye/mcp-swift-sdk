@@ -63,6 +63,7 @@ extension DataChannel {
       return path.isEmpty ? executable : path
     }
 
+    // TODO: look at how to use /bin/zsh, at least on MacOS, to avoid needing to specify PATH to locate the executable
     let process = Process()
     process.executableURL = URL(fileURLWithPath: try path(for: executable))
     process.arguments = args
