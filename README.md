@@ -22,7 +22,7 @@ The Model Context Protocol allows applications to provide context for LLMs in a 
  Add the dependency to your package:
  ```swift
  dependencies: [
-   .package(url: "https://github.com/gsabran/mcp-swift-sdk", from: "0.0.1")
+   .package(url: "https://github.com/gsabran/mcp-swift-sdk", from: "0.2.0")
  ]
 ```
 And then add the product that you need to all targets that use the dependency:
