@@ -1,5 +1,6 @@
 import Foundation
 import JSONRPC
+import JSONSchemaBuilder
 import MCPInterface
 import MemberwiseInit
 
@@ -109,4 +110,22 @@ public struct ClientInfo {
 public enum MCPServerError: Error {
   /// An error that occurred while calling a tool.
   case toolCallError(_ errors: [Error])
+  ///
+  case decodingError(input: Data, schema: JSON)
+}
+
+// MARK: LocalizedError
+
+extension MCPServerError: LocalizedError {
+  public var errorDescription: String? {
+    switch self {
+    case .toolCallError(let errors):
+      return "Tool call error:\n\(errors.map { $0.localizedDescription }.joined(separator: "\n"))"
+    case .decodingError(let input, let schema):
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+      let schemaDesc: Any = (try? encoder.encode(schema)).map { String(data: $0, encoding: .utf8) ?? "corrupted data" } ?? schema
+      return "Decoding error. Received:\n\(String(data: input, encoding: .utf8) ?? "corrupted data")\nExpected schema:\n\(schemaDesc)"
+    }
+  }
 }

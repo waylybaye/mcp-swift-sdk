@@ -1,3 +1,4 @@
+import Foundation
 import JSONRPC
 import MemberwiseInit
 
@@ -50,7 +51,7 @@ extension CapabilityStatus {
     case .supported(let capability):
       return capability
     case .notSupported:
-      throw MCPError.notSupported
+      throw MCPError.capabilityNotSupported
     }
   }
 }
@@ -58,7 +59,19 @@ extension CapabilityStatus {
 // MARK: - MCPError
 
 public enum MCPError: Error {
-  case notSupported
+  case capabilityNotSupported
+}
+
+// MARK: LocalizedError
+
+extension MCPError: LocalizedError {
+
+  public var errorDescription: String? {
+    switch self {
+    case .capabilityNotSupported:
+      return "The requested capability is not supported"
+    }
+  }
 }
 
 public typealias HandleServerRequest = (ServerRequest, (AnyJRPCResponse) -> Void)

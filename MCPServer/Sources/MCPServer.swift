@@ -20,11 +20,25 @@ public actor MCPServer: MCPServerInterface {
     transport: Transport,
     initializeRequestHook: @escaping InitializeRequestHook = { _ in })
   async throws {
-    connection = try MCPServerConnection(
+    let connection = try MCPServerConnection(
       info: info,
       capabilities: capabilities.description,
       transport: transport)
-    self.info = info
+
+    try await self.init(
+      info: info,
+      capabilities: capabilities,
+      connection: connection,
+      initializeRequestHook: initializeRequestHook)
+  }
+
+  init(
+    info: Implementation,
+    capabilities: ServerCapabilityHandlers,
+    connection: MCPServerConnectionInterface,
+    initializeRequestHook: @escaping InitializeRequestHook = { _ in })
+  async throws {
+    self.connection = connection
     self.capabilities = capabilities
 
     clientInfo = try await Self.connectToClient(
@@ -33,11 +47,6 @@ public actor MCPServer: MCPServerInterface {
       capabilities: capabilities,
       info: info)
 
-    Task {
-      for await notification in await connection.notifications {
-        mcpLogger.log("Received notification: \(String(describing: notification), privacy: .public)")
-      }
-    }
     await startListeningToNotifications()
     await startListeningToRequests()
     startPinging()
@@ -67,7 +76,7 @@ public actor MCPServer: MCPServerInterface {
 
   public func getSampling(params: CreateSamplingMessageRequest.Params) async throws -> CreateSamplingMessageRequest.Result {
     guard clientInfo.capabilities.sampling != nil else {
-      throw MCPError.notSupported
+      throw MCPError.capabilityNotSupported
     }
     return try await connection.requestCreateMessage(params)
   }
@@ -78,35 +87,35 @@ public actor MCPServer: MCPServerInterface {
 
   public func notifyResourceUpdated(params: ResourceUpdatedNotification.Params) async throws {
     guard capabilities.resources != nil else {
-      throw MCPError.notSupported
+      throw MCPError.capabilityNotSupported
     }
     try await connection.notifyResourceUpdated(params)
   }
 
-  public func notifyResourceListChanged(params _: ResourceListChangedNotification.Params? = nil) async throws {
+  public func notifyResourceListChanged(params: ResourceListChangedNotification.Params? = nil) async throws {
     guard capabilities.resources != nil else {
-      throw MCPError.notSupported
+      throw MCPError.capabilityNotSupported
     }
-    try await connection.notifyResourceListChanged()
+    try await connection.notifyResourceListChanged(params)
   }
 
-  public func notifyToolListChanged(params _: ToolListChangedNotification.Params? = nil) async throws {
+  public func notifyToolListChanged(params: ToolListChangedNotification.Params? = nil) async throws {
     guard capabilities.tools != nil else {
-      throw MCPError.notSupported
+      throw MCPError.capabilityNotSupported
     }
-    try await connection.notifyResourceListChanged()
+    try await connection.notifyResourceListChanged(params)
   }
 
-  public func notifyPromptListChanged(params _: PromptListChangedNotification.Params? = nil) async throws {
+  public func notifyPromptListChanged(params: PromptListChangedNotification.Params? = nil) async throws {
     guard capabilities.prompts != nil else {
-      throw MCPError.notSupported
+      throw MCPError.capabilityNotSupported
     }
-    try await connection.notifyResourceListChanged()
+    try await connection.notifyResourceListChanged(params)
   }
 
   public func update(tools: [any CallableTool]) async throws {
     guard capabilities.tools?.info.listChanged == true else {
-      throw MCPError.notSupported
+      throw MCPError.capabilityNotSupported
     }
     capabilities = .init(
       logging: capabilities.logging,
@@ -114,21 +123,19 @@ public actor MCPServer: MCPServerInterface {
       tools: tools.asRequestHandler(listToolChanged: true),
       resources: capabilities.resources)
 
-    try await connection.notifyToolListChanged()
+    try await connection.notifyToolListChanged(nil)
   }
 
   // MARK: Private
 
   private let _roots = CurrentValueSubject<CapabilityStatus<[Root]>?, Never>(nil)
 
-  private let info: Implementation
-
   private var capabilities: ServerCapabilityHandlers
 
   /// Called once the client has disconnected. The closure should only be called once.
   private var didDisconnect: () -> Void = { }
 
-  private let connection: MCPServerConnection
+  private let connection: MCPServerConnectionInterface
 
   private static func connectToClient(
     connection: MCPServerConnectionInterface,
@@ -194,9 +201,13 @@ public actor MCPServer: MCPServerInterface {
       do {
         return .success(try await handler(params))
       } catch {
-        return .failure(.init(
-          code: JRPCErrorCodes.internalError.rawValue,
-          message: error.localizedDescription))
+        if let err = error as? JSONRPCResponseError<JSONRPC.JSONValue> {
+          return .failure(err)
+        } else {
+          return .failure(.init(
+            code: JRPCErrorCodes.internalError.rawValue,
+            message: error.localizedDescription))
+        }
       }
     } else {
       return .failure(.init(
@@ -232,8 +243,6 @@ public actor MCPServer: MCPServerInterface {
     let requests = await connection.requestsToHandle
     Task { [weak self] in
       for await(request, completion) in requests {
-        mcpLogger.log("Received request: \(String(describing: request), privacy: .public)")
-
         guard let self else {
           completion(.failure(.init(
             code: JRPCErrorCodes.internalError.rawValue,

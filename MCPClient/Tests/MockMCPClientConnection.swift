@@ -1,8 +1,8 @@
 
+import MCPClient
 import MCPInterface
 
-#if DEBUG
-// TODO: move to a test helper package
+// MARK: - MockMCPClientConnection
 
 /// A mock `MCPClientConnection` that can be used in tests.
 class MockMCPClientConnection: MCPClientConnectionInterface {
@@ -202,7 +202,8 @@ class MockMCPClientConnection: MCPClientConnectionInterface {
 
 }
 
+// MARK: - MockMCPClientConnectionError
+
 enum MockMCPClientConnectionError: Error {
   case notImplemented(function: String)
 }
-#endif

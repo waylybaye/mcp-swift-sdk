@@ -642,3 +642,30 @@ extension PromptReference {
     name = try container.decode(String.self, forKey: "name")
   }
 }
+
+// MARK: - CallToolResult.ExecutionError + LocalizedError
+
+extension CallToolResult.ExecutionError: LocalizedError {
+
+  public var errorDescription: String? {
+    text
+  }
+}
+
+// MARK: - JRPCError + LocalizedError
+
+extension JRPCError: LocalizedError {
+
+  public var errorDescription: String? {
+    if let data {
+      do {
+        if let dataStr = String(data: try JSONEncoder().encode(data), encoding: .utf8) {
+          return "JRPC error \(code): \(message)\n\(dataStr)"
+        }
+      } catch {
+        // will fall back to the default error description
+      }
+    }
+    return "JRPC error \(code): \(message)"
+  }
+}

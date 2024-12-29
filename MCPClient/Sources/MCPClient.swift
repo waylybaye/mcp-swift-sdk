@@ -82,7 +82,7 @@ public actor MCPClient: MCPClientInterface {
     async throws -> CallToolResult
   {
     guard serverInfo.capabilities.tools != nil else {
-      throw MCPError.notSupported
+      throw MCPError.capabilityNotSupported
     }
     var progressToken: String? = nil
     if let progressHandler {
@@ -107,14 +107,14 @@ public actor MCPClient: MCPClientInterface {
 
   public func getPrompt(named name: String, arguments: JSON? = nil) async throws -> GetPromptResult {
     guard serverInfo.capabilities.prompts != nil else {
-      throw MCPError.notSupported
+      throw MCPError.capabilityNotSupported
     }
     return try await connection.getPrompt(.init(name: name, arguments: arguments))
   }
 
   public func readResource(uri: String) async throws -> ReadResourceResult {
     guard serverInfo.capabilities.resources != nil else {
-      throw MCPError.notSupported
+      throw MCPError.capabilityNotSupported
     }
     return try await connection.readResource(.init(uri: uri))
   }
@@ -137,7 +137,7 @@ public actor MCPClient: MCPClientInterface {
   private static func connectToServer(connection: MCPClientConnectionInterface) async throws -> ServerInfo {
     let response = try await connection.initialize()
     guard response.protocolVersion == MCP.protocolVersion else {
-      throw MCPClientError.versionMismatch
+      throw MCPClientError.versionMismatch(received: response.protocolVersion, expected: MCP.protocolVersion)
     }
 
     try await connection.acknowledgeInitialization()

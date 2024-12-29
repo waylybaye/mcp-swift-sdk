@@ -1,3 +1,4 @@
+import Foundation
 import JSONRPC
 import MCPInterface
 import MemberwiseInit
@@ -53,6 +54,20 @@ public struct ClientCapabilityHandlers {
 // MARK: - MCPClientError
 
 public enum MCPClientError: Error {
-  case versionMismatch
+  case versionMismatch(received: String, expected: String)
   case toolCallError(executionErrors: [CallToolResult.ExecutionError])
+}
+
+// MARK: LocalizedError
+
+extension MCPClientError: LocalizedError {
+
+  public var errorDescription: String? {
+    switch self {
+    case .versionMismatch(let received, let expected):
+      return "Version mismatch between server and client. Received: \(received), Expected: \(expected)"
+    case .toolCallError(let executionErrors):
+      return "Error executing tool:\n\(executionErrors.map { $0.errorDescription ?? "unknown error" }.joined(separator: "\n\n"))"
+    }
+  }
 }

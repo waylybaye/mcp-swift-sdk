@@ -1,5 +1,5 @@
 {
-  "originHash" : "6e86d851d5ce8be670458f4981a6827374a0235f2dd246112adc2a270f6721c5",
+  "originHash" : "f0c1ac4a1f04ced3a2dd87c0ab258a1783cc6bea4be3e86d5b815dbb778bd07d",
   "pins" : [
     {
       "identity" : "jsonrpc",
@@ -30,10 +30,10 @@
     {
       "identity" : "swift-json-schema",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/gsabran/swift-json-schema",
+      "location" : "https://github.com/ajevans99/swift-json-schema",
       "state" : {
-        "branch" : "main",
-        "revision" : "08732d03e2df1093e21b735ed5656f5c96b9d404"
+        "revision" : "0245656588b326abe1f331e5868bd211f8c7655f",
+        "version" : "0.3.1"
       }
     },
     {
