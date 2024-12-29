@@ -37,6 +37,7 @@ let server = try await MCPServer(
     Tool(name: "repeat") { (input: RepeatToolInput) in
       [.text(.init(text: input.text))]
     },
+    testTool,
   ]),
   transport: proxy(transport))
 

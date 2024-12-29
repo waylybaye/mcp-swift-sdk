@@ -1,4 +1,5 @@
 import Foundation
+import JSONRPC
 import JSONSchema
 import JSONSchemaBuilder
 import MCPInterface
@@ -17,7 +18,7 @@ import MCPInterface
 
 /// Definition for a tool the client can call.
 public protocol CallableTool {
-  associatedtype Input: Decodable
+  associatedtype Input
   /// A JSON Schema object defining the expected parameters for the tool.
   var inputSchema: JSON { get }
   /// The name of the tool.
@@ -85,44 +86,22 @@ extension Tool where Input: Schemable {
       description: description,
       inputSchema: Input.schema.schemaValue.json,
       decodeInput: { data in
-        let json = try JSONDecoder().decode(JSONValue.self, from: data)
+        let json = try JSONDecoder().decode(JSONSchema_JSONValue.self, from: data)
+
         switch Input.schema.parse(json) {
         case .valid(let value):
           return value
-        case .invalid(let errors):
-          throw errors.first ?? MCPServerError.toolCallError(errors)
+        case .invalid:
+          throw MCPServerError.decodingError(input: data, schema: Input.schema.schemaValue.json)
         }
       },
       call: call)
   }
 }
 
-extension Tool where Input: Decodable {
-  public init(
-    name: String,
-    description: String? = nil,
-    inputSchema: JSON,
-    call: @escaping (Input) async throws -> [TextContentOrImageContentOrEmbeddedResource])
-  {
-    self.init(
-      name: name,
-      description: description,
-      inputSchema: inputSchema,
-      decodeInput: { data in
-        try JSONDecoder().decode(Input.self, from: data)
-      },
-      call: call)
-  }
-}
-
 extension CallableTool {
-  public func decodeInput(_ input: JSON?) throws -> Input {
-    let data = try JSONEncoder().encode(input)
-    return try JSONDecoder().decode(Input.self, from: data)
-  }
-
-  public func call(_ input: JSON?) async throws -> [TextContentOrImageContentOrEmbeddedResource] {
-    let input = try decodeInput(input)
+  public func call(json: JSON?) async throws -> [TextContentOrImageContentOrEmbeddedResource] {
+    let input: Input = try decodeInput(json)
     return try await call(input)
   }
 }
@@ -138,11 +117,13 @@ extension Array where Element == any CallableTool {
       handler: { request in
         let name = request.name
         guard let tool = toolsByName[name] else {
-          throw MCPError.notSupported
+          throw JSONRPCResponseError<JSONRPC.JSONValue>(
+            code: JRPCErrorCodes.invalidParams.rawValue,
+            message: "Unknown tool: \(name)")
         }
         let arguments = request.arguments
         do {
-          let content = try await tool.call(arguments)
+          let content = try await tool.call(json: arguments)
           return CallToolResult(content: content)
         } catch {
           return CallToolResult(content: [.text(.init(text: error.localizedDescription))], isError: true)
@@ -158,13 +139,13 @@ extension Array where Element == any CallableTool {
 }
 
 /// Convert between the JSON representation from `JSONSchema` and ours
-extension [KeywordIdentifier: JSONValue] {
+extension [KeywordIdentifier: JSONSchema_JSONValue] {
   fileprivate var json: JSON {
     .object(mapValues { $0.value })
   }
 }
 
-extension JSONValue {
+extension JSONSchema_JSONValue {
   fileprivate var value: JSON.Value {
     switch self {
     case .null:
@@ -184,7 +165,3 @@ extension JSONValue {
     }
   }
 }
-
-// MARK: - ParseIssue + Error
-
-extension ParseIssue: @retroactive Error { }
