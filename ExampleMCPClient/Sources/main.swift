@@ -3,6 +3,9 @@ import Foundation
 import MCPClient
 import MCPInterface
 
+/// Read the path from the process args
+let repoPath = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "/path/to/repo"
+
 let client = try await MCPClient(
   info: .init(name: "test", version: "1.0.0"),
   transport: .stdioProcess(
@@ -23,13 +26,13 @@ let schema = try JSONSerialization.jsonObject(with: schemaData)
 
 /// The LLM could call into the tool with unstructured JSON input:
 let llmToolInput: [String: Any] = [
-  "repo_path": "/path/to/repo",
+  "repo_path": repoPath,
 ]
 let llmToolInputData = try JSONSerialization.data(withJSONObject: llmToolInput)
 let toolInput = try JSONDecoder().decode(JSON.self, from: llmToolInputData)
 
 // Alternatively, you can call into the tool directly from Swift with structured input:
-// let toolInput: JSON = ["repo_path": .string("/path/to/repo")]
+// let toolInput: JSON = ["repo_path": .string(repoPath)]
 
 let result = try await client.callTool(named: name, arguments: toolInput)
 if result.isError != true {
