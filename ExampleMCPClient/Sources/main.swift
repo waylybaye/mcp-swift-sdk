@@ -21,8 +21,7 @@ let name = tool.name
 let schemaData = try JSONEncoder().encode(tool.inputSchema)
 let schema = try JSONSerialization.jsonObject(with: schemaData)
 
-
-// The LLM could call into the tool with unstructured JSON input:
+/// The LLM could call into the tool with unstructured JSON input:
 let llmToolInput: [String: Any] = [
   "repo_path": "/path/to/repo",
 ]
