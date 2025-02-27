@@ -11,6 +11,7 @@ private let logger = Logger(
 
 public enum JSONRPCSetupError: Error {
   case missingStandardIO
+  case standardIOConnectionError(_ message: String)
   case couldNotLocateExecutable(executable: String, error: String?)
 }
 
@@ -24,6 +25,8 @@ extension JSONRPCSetupError: LocalizedError {
       return "Missing standard IO"
     case .couldNotLocateExecutable(let executable, let error):
       return "Could not locate executable \(executable) \(error ?? "")".trimmingCharacters(in: .whitespaces)
+    case .standardIOConnectionError(let message):
+      return "Could not connect to stdio: \(message)".trimmingCharacters(in: .whitespaces)
     }
   }
 
@@ -33,6 +36,8 @@ extension JSONRPCSetupError: LocalizedError {
       return "Make sure that the Process that is passed as an argument has stdin, stdout and stderr set as a Pipe."
     case .couldNotLocateExecutable:
       return "Check that the executable is findable given the PATH environment variable. If needed, pass the right environment to the process."
+    case .standardIOConnectionError:
+      return nil
     }
   }
 }
@@ -55,20 +60,31 @@ extension DataChannel {
     }
 
     // Create the process
-    func path(for executable: String) throws -> String {
+    func path(for executable: String, env: [String: String]?) -> String? {
       guard !executable.contains("/") else {
         return executable
       }
-      let path = try locate(executable: executable, env: env)
-      return path.isEmpty ? executable : path
+      do {
+        let path = try locate(executable: executable, env: env)
+        return path.isEmpty ? nil : path
+      } catch {
+        // Most likely an error because we could not locate the executable
+        return nil
+      }
     }
 
-    // TODO: look at how to use /bin/zsh, at least on MacOS, to avoid needing to specify PATH to locate the executable
     let process = Process()
-    process.executableURL = URL(fileURLWithPath: try path(for: executable))
-    process.arguments = args
-    if let env {
-      process.environment = env
+    // In MacOS, zsh is the default since macOS Catalina 10.15.7. We can safely assume it is available.
+    process.launchPath = "/bin/zsh"
+    if let executable = path(for: executable, env: env) {
+      let command = "\(executable) \(args.joined(separator: " "))"
+      process.arguments = ["-c"] + [command]
+      process.environment = env ?? ProcessInfo.processInfo.environment
+    } else {
+      // If we cannot locate the executable, try loading the default environment for zsh, as the current process might not have the correct PATH.
+      process.environment = try loadZshEnvironment()
+      let command = "\(executable) \(args.joined(separator: " "))"
+      process.arguments = ["-c"] + [command]
     }
 
     // Working directory
@@ -179,17 +195,39 @@ extension DataChannel {
 
   /// Finds the full path to the executable using the `which` command.
   private static func locate(executable: String, env: [String: String]? = nil) throws -> String {
-    let stdout = Pipe()
-    let stderr = Pipe()
     let process = Process()
-    process.standardOutput = stdout
-    process.standardError = stderr
     process.executableURL = URL(fileURLWithPath: "/usr/bin/which")
     process.arguments = [executable]
 
     if let env {
       process.environment = env
     }
+
+    guard let executablePath = try getProcessStdout(process: process), !executablePath.isEmpty
+    else {
+      throw JSONRPCSetupError.couldNotLocateExecutable(executable: executable, error: "")
+    }
+    return executablePath
+  }
+
+  private static func loadZshEnvironment() throws -> [String: String] {
+    let process = Process()
+    process.launchPath = "/bin/zsh"
+    process.arguments = ["-c", "source ~/.zshrc && printenv"]
+    let env = try getProcessStdout(process: process)
+
+    if let path = env?.split(separator: "\n").filter({ $0.starts(with: "PATH=") }).first {
+      return ["PATH": String(path.dropFirst("PATH=".count))]
+    } else {
+      return ProcessInfo.processInfo.environment
+    }
+  }
+
+  private static func getProcessStdout(process: Process) throws -> String? {
+    let stdout = Pipe()
+    let stderr = Pipe()
+    process.standardOutput = stdout
+    process.standardError = stderr
 
     let group = DispatchGroup()
     var stdoutData = Data()
@@ -208,20 +246,14 @@ extension DataChannel {
       stdoutData = stdout.fileHandleForReading.readDataToEndOfFile()
       try process.finish()
     } catch {
-      throw JSONRPCSetupError.couldNotLocateExecutable(
-        executable: executable,
-        error: String(data: stderrData, encoding: .utf8))
+      throw JSONRPCSetupError
+        .standardIOConnectionError(
+          "Error loading environment: \(error). Stderr: \(String(data: stderrData, encoding: .utf8) ?? "")")
     }
 
     group.wait()
 
-    guard
-      let executablePath = String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
-      !executablePath.isEmpty
-    else {
-      throw JSONRPCSetupError.couldNotLocateExecutable(executable: executable, error: String(data: stderrData, encoding: .utf8))
-    }
-    return executablePath
+    return String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
 }
