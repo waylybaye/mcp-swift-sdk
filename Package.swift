@@ -22,6 +22,9 @@ let package = Package(
     .executable(name: "ExampleMCPServer", targets: [
       "ExampleMCPServer",
     ]),
+    .executable(name: "ExampleMCPClient", targets: [
+      "ExampleMCPClient",
+    ]),
   ],
   dependencies: [
     .package(url: "https://github.com/ChimeHQ/JSONRPC", revision: "ef61a695bafa0e07080dadac65a0c59b37880548"),
@@ -62,6 +65,12 @@ let package = Package(
         .target(name: "MCPServer"),
       ],
       path: "ExampleMCPServer/Sources"),
+    .executableTarget(
+      name: "ExampleMCPClient",
+      dependencies: [
+        .target(name: "MCPClient"),
+      ],
+      path: "ExampleMCPClient/Sources"),
 
     // Tests libraries
     .target(
