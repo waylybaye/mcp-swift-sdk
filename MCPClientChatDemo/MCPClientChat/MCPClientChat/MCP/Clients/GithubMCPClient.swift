@@ -11,7 +11,6 @@ import SwiftUI
 
 final class GIthubMCPClient: MCPLLMClient {
    
-   /// Intentionally force unwrapping for demo, if cleint is nil this demo does not have any purpose.
    var client: MCPClient?
    
    init() {
