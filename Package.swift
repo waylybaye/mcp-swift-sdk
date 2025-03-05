@@ -110,6 +110,7 @@ let package = Package(
       dependencies: [
         .product(name: "JSONRPC", package: "JSONRPC"),
         .target(name: "MCPInterface"),
+        .target(name: "SwiftTestingUtils"),
       ],
       path: "MCPInterface/Tests"),
     .testTarget(

@@ -1,6 +1,7 @@
 
 import Foundation
 import JSONRPC
+import MCPInterface
 import OSLog
 
 private let logger = Logger(
@@ -42,17 +43,18 @@ extension JSONRPCSetupError: LocalizedError {
   }
 }
 
-extension DataChannel {
+extension Transport {
 
   // MARK: Public
 
+  /// Creates a new `Transport` by launching the given executable with the specified arguments and attaching to its standard IO.
   public static func stdioProcess(
     _ executable: String,
     args: [String] = [],
     cwd: String? = nil,
     env: [String: String]? = nil,
     verbose: Bool = false)
-    throws -> DataChannel
+    throws -> Transport
   {
     if verbose {
       let command = "\(executable) \(args.joined(separator: " "))"
@@ -103,10 +105,11 @@ extension DataChannel {
     return try stdioProcess(unlaunchedProcess: process, verbose: verbose)
   }
 
+  /// Creates a new `Transport` by launching the given process and attaching to its standard IO.
   public static func stdioProcess(
     unlaunchedProcess process: Process,
     verbose: Bool = false)
-    throws -> DataChannel
+    throws -> Transport
   {
     guard
       let stdin = process.standardInput as? Pipe,
@@ -119,9 +122,10 @@ extension DataChannel {
     // Run the process
     var stdoutData = Data()
     var stderrData = Data()
-
     let outStream: AsyncStream<Data>
     if verbose {
+      var truncatedData = Data()
+
       // As we are both reading stdout here in this function, and want to make the stream readable to the caller,
       // we read the data from the process's stdout, process it and then re-yield it to the caller to a new stream.
       // This is because an AsyncStream can have only one reader.
@@ -131,7 +135,7 @@ extension DataChannel {
       }
 
       Task {
-        for await data in stdout.fileHandleForReading.dataStream {
+        for await data in stdout.fileHandleForReading.dataStream.jsonStream {
           stdoutData.append(data)
           outContinuation?.yield(data)
 
@@ -143,17 +147,19 @@ extension DataChannel {
       if stdout.fileHandleForReading.fileDescriptor != stderr.fileHandleForReading.fileDescriptor {
         Task {
           for await data in stderr.fileHandleForReading.dataStream {
-            logger.log("Received error:\n\(String(data: data, encoding: .utf8) ?? "nil")")
+            if verbose {
+              logger.log("Received error:\n\(String(data: data, encoding: .utf8) ?? "nil")")
+            }
             stderrData.append(data)
           }
         }
       }
     } else {
       // If we are not in verbose mode, we are not reading from stdout internally, so we can just return the stream directly.
-      outStream = stdout.fileHandleForReading.dataStream
+      outStream = stdout.fileHandleForReading.dataStream.jsonStream
     }
 
-    // Ensures that the process is terminated when the DataChannel is de-referenced.
+    // Ensures that the process is terminated when the Transport is de-referenced.
     let lifetime = Lifetime {
       if process.isRunning {
         process.terminate()
@@ -177,7 +183,7 @@ extension DataChannel {
       throw error
     }
 
-    let writeHandler: DataChannel.WriteHandler = { [lifetime] data in
+    let writeHandler: Transport.WriteHandler = { [lifetime] data in
       _ = lifetime
       if verbose {
         logger.log("Sending data:\n\(String(data: data, encoding: .utf8) ?? "nil")")
@@ -188,7 +194,7 @@ extension DataChannel {
       stdin.fileHandleForWriting.write(Data("\n".utf8))
     }
 
-    return DataChannel(writeHandler: writeHandler, dataSequence: outStream)
+    return Transport(writeHandler: writeHandler, dataSequence: outStream)
   }
 
   // MARK: Private

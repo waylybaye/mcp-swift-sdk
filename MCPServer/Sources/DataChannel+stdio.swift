@@ -1,5 +1,6 @@
 import Foundation
 import JSONRPC
+import MCPInterface
 
 extension DataChannel {
 
@@ -14,6 +15,6 @@ extension DataChannel {
       FileHandle.standardOutput.write(data)
     }
 
-    return DataChannel(writeHandler: writeHandler, dataSequence: FileHandle.standardInput.dataStream)
+    return DataChannel(writeHandler: writeHandler, dataSequence: FileHandle.standardInput.dataStream.jsonStream)
   }
 }
