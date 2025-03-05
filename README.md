@@ -34,6 +34,8 @@ And then add the product that you need to all targets that use the dependency:
 
 ## Quick Start
 
+⚠️ When using stdio servers in a MacOS app, you need to disable sandboxing. This is because the app will need to run the processes for each server.
+
 ### Creating a Server
 ```swift
 import MCPServer
