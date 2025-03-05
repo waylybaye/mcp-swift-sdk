@@ -27,7 +27,7 @@ let package = Package(
     ]),
   ],
   dependencies: [
-    .package(url: "https://github.com/ChimeHQ/JSONRPC", revision: "ef61a695bafa0e07080dadac65a0c59b37880548"),
+    .package(url: "https://github.com/gsabran/JSONRPC", from: "0.9.1"),
     .package(url: "https://github.com/gohanlon/swift-memberwise-init-macro", from: "0.5.1"),
     .package(url: "https://github.com/ajevans99/swift-json-schema", from: "0.3.1"),
     // Dev dependency
