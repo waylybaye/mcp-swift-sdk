@@ -1,12 +1,13 @@
 {
-  "originHash" : "f0c1ac4a1f04ced3a2dd87c0ab258a1783cc6bea4be3e86d5b815dbb778bd07d",
+  "originHash" : "0330db019e2fd99f9afeae2563867fe78b6e741a0dffec856c844843684b3472",
   "pins" : [
     {
       "identity" : "jsonrpc",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ChimeHQ/JSONRPC",
+      "location" : "https://github.com/gsabran/JSONRPC",
       "state" : {
-        "revision" : "ef61a695bafa0e07080dadac65a0c59b37880548"
+        "revision" : "56c936de4e4385287dc18f260557dbdf443a55bd",
+        "version" : "0.9.1"
       }
     },
     {
