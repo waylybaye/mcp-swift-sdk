@@ -6,9 +6,16 @@ extension Data {
   func jsonString() throws -> String {
     let object = try JSONSerialization.jsonObject(with: self, options: [])
     let data = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys])
-    return String(data: data, encoding: .utf8)!
+    guard let str = String(data: data, encoding: .utf8) else {
+      throw JSONError()
+    }
+    return str
   }
 }
+
+// MARK: - JSONError
+
+private struct JSONError: Error { }
 
 /// Test decoding the Json data to the given type, encoding it back to Json, and comparing the results.
 func testDecodingEncodingOf<T: Codable>(_ json: String, with _: T.Type) throws {
