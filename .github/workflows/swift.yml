@@ -54,5 +54,5 @@ jobs:
       run: brew install swiftformat
     - name: Run linter
       run: swiftformat --config rules.swiftformat .
-    - name: Verify that `swift package --allow-writing-to-package-directory format` did not change outputs (if it did, please re-run it and re-commit!)
+    - name: Verify that `swiftformat --config rules.swiftformat .` did not change outputs (if it did, please re-run it and re-commit!)
       run: git diff --exit-code
