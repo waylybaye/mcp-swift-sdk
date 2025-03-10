@@ -12,8 +12,6 @@ import SwiftAnthropic
 
 extension MCPInterface.Tool {
 
-  // MARK: Public
-
   /// Converts an MCP interface tool to SwiftAnthropic's tool format.
   ///
   /// This function transforms the tool's metadata and schema structure from
@@ -24,15 +22,14 @@ extension MCPInterface.Tool {
   ///   functionality as the original MCP tool.
   public func toAnthropicTool() -> SwiftAnthropic.MessageParameter.Tool {
     // Convert the JSON to SwiftAnthropic.JSONSchema
-    let anthropicInputSchema: SwiftAnthropic.MessageParameter.Tool.JSONSchema?
-
-    switch inputSchema {
-    case .object(let value):
-      anthropicInputSchema = convertToAnthropicJSONSchema(from: value)
-    case .array:
-      // Arrays are not directly supported in the schema root
-      anthropicInputSchema = nil
-    }
+    let anthropicInputSchema: SwiftAnthropic.MessageParameter.Tool.JSONSchema? =
+      switch inputSchema {
+      case .object(let value):
+        convertToAnthropicJSONSchema(from: value)
+      case .array:
+        // Arrays are not directly supported in the schema root
+        nil
+      }
 
     return SwiftAnthropic.MessageParameter.Tool(
       name: name,
@@ -40,8 +37,6 @@ extension MCPInterface.Tool {
       inputSchema: anthropicInputSchema,
       cacheControl: nil)
   }
-
-  // MARK: Private
 
   /// Converts MCP JSON object to SwiftAnthropic JSONSchema format.
   ///
@@ -474,19 +469,19 @@ extension MessageResponse.Content.DynamicContent {
   func extractValue() -> Any {
     switch self {
     case .string(let value):
-      return value
+      value
     case .integer(let value):
-      return value
+      value
     case .double(let value):
-      return value
+      value
     case .dictionary(let value):
-      return value.mapValues { $0.extractValue() }
+      value.mapValues { $0.extractValue() }
     case .array(let value):
-      return value.map { $0.extractValue() }
+      value.map { $0.extractValue() }
     case .bool(let value):
-      return value
+      value
     case .null:
-      return NSNull()
+      NSNull()
     }
   }
 }

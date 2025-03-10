@@ -9,11 +9,7 @@ private let logger = Logger(subsystem: "testing", category: "testing")
 
 public enum SwiftTestingUtils {
 
-  // MARK: Public
-
   public class Expectation {
-
-    // MARK: Lifecycle
 
     init(
       description: String,
@@ -23,8 +19,6 @@ public enum SwiftTestingUtils {
       location = _sourceLocation
     }
 
-    // MARK: Public
-
     public func fulfill() {
       if isFulfilled {
         Issue.record("Expectation from \(location) already fulfilled.")
@@ -32,8 +26,6 @@ public enum SwiftTestingUtils {
       isFulfilled = true
       onFulfill()
     }
-
-    // MARK: Internal
 
     private(set) var isFulfilled = false
 
@@ -47,7 +39,7 @@ public enum SwiftTestingUtils {
 
       var hasTimedOut = false
       var hasCompleted = false
-      let description = self.description
+      let description = description
 
       try await withCheckedThrowingContinuation { continuation in
         onFulfill = {
@@ -72,12 +64,8 @@ public enum SwiftTestingUtils {
       }
     }
 
-    // MARK: Private
-
     private var onFulfill: () -> Void = { }
   }
-
-  // MARK: Internal
 
   enum SwiftTesting: Error {
     case expectationTimeout(description: String)

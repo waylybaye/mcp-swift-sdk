@@ -6,8 +6,6 @@ extension MCPInterfaceTests {
   enum LoggingLevelTest {
     struct Serialization {
 
-      // MARK: Internal
-
       @Test
       func encodeDebug() throws {
         try testEncoding(of: .debug, "\"debug\"")
@@ -48,8 +46,6 @@ extension MCPInterfaceTests {
         try testEncoding(of: .emergency, "\"emergency\"")
       }
 
-      // MARK: Private
-
       private func testEncoding(of value: LoggingLevel, _ json: String) throws {
         // wrap the value in array for it to be valid JSON
         try testEncodingOf([value], "[\(json)]")
@@ -57,8 +53,6 @@ extension MCPInterfaceTests {
     }
 
     struct Deserialization {
-
-      // MARK: Internal
 
       @Test
       func decodeDebug() throws {
@@ -106,8 +100,6 @@ extension MCPInterfaceTests {
         let data = "[\"unknown\"]".data(using: .utf8)!
         #expect(throws: DecodingError.self) { try JSONDecoder().decode([LoggingLevel].self, from: data) }
       }
-
-      // MARK: Private
 
       private func testDecoding(of json: String, _ value: LoggingLevel) throws {
         // wrap the value in array for it to be valid JSON

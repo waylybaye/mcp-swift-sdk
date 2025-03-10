@@ -8,8 +8,6 @@ extension MCPInterfaceTests {
 
     struct Deserialization {
 
-      // MARK: Internal
-
       @Test
       func decodeCancelledNotification() throws {
         try testDecoding(
@@ -133,8 +131,6 @@ extension MCPInterfaceTests {
           """.data(using: .utf8)!
         #expect(throws: DecodingError.self) { try JSONDecoder().decode(ServerNotification.self, from: data) }
       }
-
-      // MARK: Private
 
       private func testDecoding(of json: String, _ value: ServerNotification) throws {
         let data = json.data(using: .utf8)!

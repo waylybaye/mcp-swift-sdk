@@ -7,8 +7,6 @@ extension MCPInterfaceTests {
   enum AnyMetaTest {
     struct Serialization {
 
-      // MARK: Internal
-
       @Test
       func encodeWithNoValues() throws {
         try testEncoding(of: AnyMeta(.object([:])), """
@@ -31,16 +29,12 @@ extension MCPInterfaceTests {
           """)
       }
 
-      // MARK: Private
-
       private func testEncoding(of value: AnyMeta, _ json: String) throws {
         try testEncodingOf(value, json)
       }
     }
 
     struct Deserialization {
-
-      // MARK: Internal
 
       @Test
       func decodeWithNoValues() throws {
@@ -63,8 +57,6 @@ extension MCPInterfaceTests {
           "bar": .bool(true),
         ])))
       }
-
-      // MARK: Private
 
       private func testDecoding(of jsonString: String, _ value: AnyMeta) throws {
         let data = jsonString.data(using: .utf8)!

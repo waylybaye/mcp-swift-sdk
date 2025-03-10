@@ -12,8 +12,6 @@ import SwiftOpenAI
 
 extension MCPInterface.Tool {
 
-  // MARK: Public
-
   /// Converts an MCP interface tool to SwiftOpenAI's tool format.
   ///
   /// This function transforms the tool's metadata and schema structure from
@@ -24,15 +22,14 @@ extension MCPInterface.Tool {
   ///   functionality as the original MCP tool.
   public func toOpenAITool() -> SwiftOpenAI.ChatCompletionParameters.Tool {
     // Convert the JSON to SwiftOpenAI.JSONSchema
-    let openAIParameters: SwiftOpenAI.JSONSchema?
-
-    switch inputSchema {
-    case .object(let value):
-      openAIParameters = convertToOpenAIJSONSchema(from: value)
-    case .array:
-      // Arrays are not directly supported in the schema root
-      openAIParameters = nil
-    }
+    let openAIParameters: SwiftOpenAI.JSONSchema? =
+      switch inputSchema {
+      case .object(let value):
+        convertToOpenAIJSONSchema(from: value)
+      case .array:
+        // Arrays are not directly supported in the schema root
+        nil
+      }
 
     let chatFunction = SwiftOpenAI.ChatCompletionParameters.ChatFunction(
       name: name,
@@ -44,8 +41,6 @@ extension MCPInterface.Tool {
       type: "function", // Currently only "function" is supported
       function: chatFunction)
   }
-
-  // MARK: Private
 
   /// Converts MCP JSON object to SwiftOpenAI JSONSchema format.
   ///
@@ -164,7 +159,7 @@ extension MCPInterface.Tool {
 
     // Fix for OpenAI's requirement: for strict schemas, include all property keys in required array
     // If we're dealing with an object type and have properties
-    if type == .object && properties != nil {
+    if type == .object, properties != nil {
       // Initialize the set of all property keys
       var allPropertyKeys = Set(properties!.keys)
 

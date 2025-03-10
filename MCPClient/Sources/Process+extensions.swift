@@ -35,12 +35,12 @@ extension Process {
   func finish() throws {
     /// The full path to the executable + all arguments, each one quoted if it contains a space.
     func commandAsString() -> String {
-      let path: String
-      if #available(OSX 10.13, *) {
-        path = self.executableURL?.path ?? ""
-      } else {
-        path = launchPath ?? ""
-      }
+      let path: String =
+        if #available(OSX 10.13, *) {
+          self.executableURL?.path ?? ""
+        } else {
+          launchPath ?? ""
+        }
       return (arguments ?? []).reduce(path) { (acc: String, arg: String) in
         acc + " " + (arg.contains(" ") ? ("\"" + arg + "\"") : arg)
       }
@@ -66,9 +66,9 @@ enum CommandError: Error, Equatable {
   public var errorcode: Int {
     switch self {
     case .returnedErrorCode(_, let code):
-      return code
+      code
     case .inAccessibleExecutable:
-      return 127 // according to http://tldp.org/LDP/abs/html/exitcodes.html
+      127 // according to http://tldp.org/LDP/abs/html/exitcodes.html
     }
   }
 }
@@ -79,9 +79,9 @@ extension CommandError: CustomStringConvertible {
   public var description: String {
     switch self {
     case .inAccessibleExecutable(let path):
-      return "Could not execute file at path '\(path)'."
+      "Could not execute file at path '\(path)'."
     case .returnedErrorCode(let command, let code):
-      return "Command '\(command)' returned with error code \(code)."
+      "Command '\(command)' returned with error code \(code)."
     }
   }
 }

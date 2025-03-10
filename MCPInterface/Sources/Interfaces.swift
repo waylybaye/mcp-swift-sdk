@@ -69,7 +69,7 @@ extension MCPError: LocalizedError {
   public var errorDescription: String? {
     switch self {
     case .capabilityNotSupported:
-      return "The requested capability is not supported"
+      "The requested capability is not supported"
     }
   }
 }

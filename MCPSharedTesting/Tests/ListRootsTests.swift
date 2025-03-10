@@ -45,7 +45,7 @@ extension MCPConnectionTestSuite {
             }
             """),
         ])
-      #expect(roots.roots.map { $0.name } == ["My Project"])
+      #expect(roots.roots.map(\.name) == ["My Project"])
     }
 
     @Test("receiving roots list changed notification")

@@ -62,8 +62,6 @@ public struct ListedCapabilityHandler<Info, Handler, ListHandler> {
 /// All the handler functions required to support the `resources` capability.
 public struct ResourcesCapabilityHandler {
 
-  // MARK: Lifecycle
-
   public init(
     listChanged: Bool = false,
     readResource: @escaping ReadResourceRequest.Handler,
@@ -81,8 +79,6 @@ public struct ResourcesCapabilityHandler {
     self.unsubscribeToResource = unsubscribeToResource
     self.complete = complete
   }
-
-  // MARK: Public
 
   /// Whether this server supports notifications for changes to the resource list.
   public let listChanged: Bool
@@ -120,7 +116,7 @@ extension MCPServerError: LocalizedError {
   public var errorDescription: String? {
     switch self {
     case .toolCallError(let errors):
-      return "Tool call error:\n\(errors.map { $0.localizedDescription }.joined(separator: "\n"))"
+      return "Tool call error:\n\(errors.map(\.localizedDescription).joined(separator: "\n"))"
     case .decodingError(let input, let schema):
       let encoder = JSONEncoder()
       encoder.outputFormatting = [.prettyPrinted, .sortedKeys]

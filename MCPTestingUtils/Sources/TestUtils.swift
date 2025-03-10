@@ -161,9 +161,9 @@ public func assert<Result>(
       let exp = expectation(description: "clientResponding completed (event #\(i))")
       expectations.append(exp)
       Task {
-        for await(request, completion) in serverRequestsHandler {
+        for await (request, completion) in serverRequestsHandler {
           do {
-            completion(try await requestHandler(request))
+            try await completion(requestHandler(request))
           } catch {
             Issue.record(error)
           }
@@ -179,9 +179,9 @@ public func assert<Result>(
       let exp = expectation(description: "serverResponding completed (event #\(i))")
       expectations.append(exp)
       Task {
-        for await(request, completion) in clientRequestsHandler {
+        for await (request, completion) in clientRequestsHandler {
           do {
-            completion(try await requestHandler(request))
+            try await completion(requestHandler(request))
           } catch {
             Issue.record(error)
           }

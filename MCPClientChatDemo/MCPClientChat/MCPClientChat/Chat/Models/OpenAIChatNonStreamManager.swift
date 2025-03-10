@@ -12,18 +12,14 @@ import MCPInterface
 import SwiftOpenAI
 import SwiftUI
 
+/// Handle a chat conversation without stream for OpenAI.
 @MainActor
 @Observable
-/// Handle a chat conversation without stream for OpenAI.
 final class OpenAIChatNonStreamManager: ChatManager {
-
-  // MARK: Lifecycle
 
   init(service: OpenAIService) {
     self.service = service
   }
-
-  // MARK: Internal
 
   /// Messages sent from the user or received from OpenAI
   var messages = [ChatMessage]()
@@ -65,8 +61,6 @@ final class OpenAIChatNonStreamManager: ChatManager {
     task?.cancel()
     task = nil
   }
-
-  // MARK: Private
 
   /// Service to communicate with OpenAI API
   private let service: OpenAIService

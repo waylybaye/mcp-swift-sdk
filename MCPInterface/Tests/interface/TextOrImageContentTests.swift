@@ -7,8 +7,6 @@ extension MCPInterfaceTests {
   enum TextOrImageContentTest {
     struct Deserialization {
 
-      // MARK: Internal
-
       @Test
       func decodeText() throws {
         let value = try decode("""
@@ -49,8 +47,6 @@ extension MCPInterfaceTests {
             """)
         }
       }
-
-      // MARK: Private
 
       private func decode(_ jsonString: String) throws -> TextOrImageContent {
         let data = jsonString.data(using: .utf8)!

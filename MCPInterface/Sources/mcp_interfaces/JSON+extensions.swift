@@ -3,8 +3,6 @@ import Foundation
 
 extension JSON {
 
-  // MARK: Lifecycle
-
   public init(from decoder: Decoder) throws {
     do {
       // Object
@@ -29,8 +27,6 @@ extension JSON {
     }
   }
 
-  // MARK: Public
-
   public static func ==(lhs: JSON, rhs: JSON) -> Bool {
     lhs.asValue == rhs.asValue
   }
@@ -38,8 +34,6 @@ extension JSON {
   public func encode(to encoder: any Encoder) throws {
     try asValue.encode(to: encoder)
   }
-
-  // MARK: Internal
 
   var asValue: JSON.Value {
     switch self {
@@ -53,8 +47,6 @@ extension JSON {
 }
 
 extension JSON.Value {
-
-  // MARK: Lifecycle
 
   public init(from decoder: Decoder) throws {
     do {
@@ -95,8 +87,6 @@ extension JSON.Value {
       }
     }
   }
-
-  // MARK: Public
 
   public static func ==(lhs: JSON.Value, rhs: JSON.Value) -> Bool {
     switch (lhs, rhs) {
@@ -160,7 +150,7 @@ extension JSON {
       }
 
     case .array(let value):
-      value.map { $0.asAny }
+      value.map(\.asAny)
     }
   }
 
@@ -169,7 +159,7 @@ extension JSON {
   }
 
   public func asJSONString(options: JSONSerialization.WritingOptions = []) throws -> String {
-    guard let string = String(data: try asJSONData(options: options), encoding: .utf8) else {
+    guard let string = try String(data: asJSONData(options: options), encoding: .utf8) else {
       throw NSError(domain: "JSON", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to convert JSON to string"])
     }
     return string
@@ -188,7 +178,7 @@ extension JSON.Value {
       }
 
     case .array(let value):
-      value.map { $0.asAny }
+      value.map(\.asAny)
 
     case .bool(let value):
       value
@@ -206,8 +196,6 @@ extension JSON.Value {
 
 extension String: @retroactive CodingKey {
 
-  // MARK: Lifecycle
-
   public init?(stringValue: String) {
     self = stringValue
   }
@@ -215,8 +203,6 @@ extension String: @retroactive CodingKey {
   public init?(intValue: Int) {
     self = "\(intValue)"
   }
-
-  // MARK: Public
 
   public var stringValue: String { self }
   public var intValue: Int? { Int(self) }

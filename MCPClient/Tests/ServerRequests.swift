@@ -24,7 +24,7 @@ extension MCPClientTestSuite {
         do {
           let success = try response.get()
           let roots = try #require(success as? ListRootsResult)
-          #expect(roots.roots.map { $0.uri } == ["//root"])
+          #expect(roots.roots.map(\.uri) == ["//root"])
           expectation.fulfill()
         } catch {
           Issue.record(error)

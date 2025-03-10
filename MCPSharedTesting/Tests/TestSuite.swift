@@ -16,8 +16,6 @@ class MCPConnectionTestSuite { }
 /// A parent test class that provides a few util functions to assert that the interactions with the transport are as expected.
 class MCPConnectionTest {
 
-  // MARK: Lifecycle
-
   init() {
     clientTransport = MockTransport()
     serverTransport = MockTransport()
@@ -47,8 +45,6 @@ class MCPConnectionTest {
     }
   }
 
-  // MARK: Internal
-
   var clientTransport: MockTransport
   var serverTransport: MockTransport
 
@@ -70,10 +66,10 @@ extension MCPConnectionTest {
     try await MCPTestingUtils.assert(
       clientTransport: clientTransport,
       serverTransport: serverTransport,
-      serverRequestsHandler: await clientConnection.requestsToHandle,
-      clientRequestsHandler: await serverConnection.requestsToHandle,
-      serverNotifications: await clientConnection.notifications,
-      clientNotifications: await serverConnection.notifications,
+      serverRequestsHandler: clientConnection.requestsToHandle,
+      clientRequestsHandler: serverConnection.requestsToHandle,
+      serverNotifications: clientConnection.notifications,
+      clientNotifications: serverConnection.notifications,
       executing: task,
       triggers: events)
   }

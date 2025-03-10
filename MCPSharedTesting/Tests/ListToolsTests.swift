@@ -67,7 +67,7 @@ extension MCPConnectionTestSuite {
             }
             """),
         ])
-      #expect(tools.map { $0.name } == ["get_weather"])
+      #expect(tools.map(\.name) == ["get_weather"])
     }
 
     @Test("list tools with pagination")
@@ -188,7 +188,7 @@ extension MCPConnectionTestSuite {
             """),
         ])
 
-      #expect(tools.map { $0.name } == ["get_weather", "get_time"])
+      #expect(tools.map(\.name) == ["get_weather", "get_time"])
     }
 
     @Test("receiving list tool changed notification")

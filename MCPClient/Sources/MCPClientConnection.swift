@@ -7,8 +7,6 @@ import MemberwiseInit
 
 public actor MCPClientConnection: MCPClientConnectionInterface {
 
-  // MARK: Lifecycle
-
   public init(
     info: Implementation,
     capabilities: ClientCapabilities,
@@ -20,8 +18,6 @@ public actor MCPClientConnection: MCPClientConnectionInterface {
     self.info = info
     self.capabilities = capabilities
   }
-
-  // MARK: Public
 
   public let info: Implementation
 
@@ -107,8 +103,6 @@ public actor MCPClientConnection: MCPClientConnectionInterface {
   public func notifyRootsListChanged() async throws {
     try await jrpcSession.send(RootsListChangedNotification())
   }
-
-  // MARK: Private
 
   private let _connection: MCPConnection<ServerRequest, ServerNotification>
 

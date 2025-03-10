@@ -60,7 +60,7 @@ extension MCPConnectionTestSuite {
             }
             """),
         ])
-      #expect(prompts.map { $0.name } == ["code_review"])
+      #expect(prompts.map(\.name) == ["code_review"])
     }
 
     @Test("list prompts with pagination")
@@ -164,7 +164,7 @@ extension MCPConnectionTestSuite {
             }
             """),
         ])
-      #expect(prompts.map { $0.name } == ["code_review", "test_code"])
+      #expect(prompts.map(\.name) == ["code_review", "test_code"])
     }
 
     @Test("receiving prompts list changed notification")

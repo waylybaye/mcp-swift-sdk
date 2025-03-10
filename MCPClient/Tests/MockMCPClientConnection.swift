@@ -7,8 +7,6 @@ import MCPInterface
 /// A mock `MCPClientConnection` that can be used in tests.
 class MockMCPClientConnection: MCPClientConnectionInterface {
 
-  // MARK: Lifecycle
-
   required init(info: Implementation, capabilities: ClientCapabilities, transport _: Transport = .noop) throws {
     self.info = info
     self.capabilities = capabilities
@@ -25,8 +23,6 @@ class MockMCPClientConnection: MCPClientConnectionInterface {
     }
     self.sendRequestToStream = sendRequestToStream
   }
-
-  // MARK: Internal
 
   /// Send a server notification.
   private(set) var sendNotificationToStream: ((ServerNotification) -> Void) = { _ in }

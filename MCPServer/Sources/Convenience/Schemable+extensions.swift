@@ -35,8 +35,6 @@ public protocol CallableTool {
 
 public struct Tool<Input>: CallableTool {
 
-  // MARK: Lifecycle
-
   public init(
     name: String,
     description: String? = nil,
@@ -50,8 +48,6 @@ public struct Tool<Input>: CallableTool {
     _decodeInput = decodeInput
     _call = call
   }
-
-  // MARK: Public
 
   public let name: String
 
@@ -67,8 +63,6 @@ public struct Tool<Input>: CallableTool {
     let data = try JSONEncoder().encode(input)
     return try _decodeInput(data)
   }
-
-  // MARK: Private
 
   private let _call: (Input) async throws -> [TextContentOrImageContentOrEmbeddedResource]
 
@@ -157,7 +151,7 @@ extension JSONSchema_JSONValue {
     case .string(let value):
       .string(value)
     case .array(let value):
-      .array(value.map { $0.value })
+      .array(value.map(\.value))
     case .object(let value):
       .object(value.mapValues { $0.value })
     case .integer(let value):

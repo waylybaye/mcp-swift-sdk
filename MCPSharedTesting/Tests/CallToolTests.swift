@@ -8,8 +8,6 @@ import Testing
 extension MCPConnectionTestSuite {
   final class CallToolTests: MCPConnectionTest {
 
-    // MARK: Internal
-
     @Test("call tool")
     func test_callTool() async throws {
       let weathers = try await assert(executing: {
@@ -20,7 +18,7 @@ extension MCPConnectionTestSuite {
           ]),
           progressToken: .string("toolCallId"))
           .content
-          .map { $0.text }
+          .map(\.text)
       }, triggers: [
         .clientSendsJrpc("""
           {
@@ -163,8 +161,6 @@ extension MCPConnectionTestSuite {
       #expect(response.isError == true)
       #expect(response.content.map { $0.text?.text } == ["Failed to fetch weather data: API rate limit exceeded"])
     }
-
-    // MARK: Private
 
     private let tool = Tool(
       name: "get_weather",

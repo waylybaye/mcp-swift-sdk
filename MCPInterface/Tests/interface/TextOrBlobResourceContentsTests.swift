@@ -6,8 +6,6 @@ import Testing
 extension MCPInterfaceTests {
   struct TextOrBlobResourceContentsTest {
 
-    // MARK: Internal
-
     @Test
     func decodeText() throws {
       let json = """
@@ -37,8 +35,6 @@ extension MCPInterfaceTests {
       #expect(value.blob?.blob == "base64-encoded-data")
       try testEncodingDecoding(of: value, json)
     }
-
-    // MARK: Private
 
     private func decode(_ jsonString: String) throws -> TextOrBlobResourceContents {
       let data = jsonString.data(using: .utf8)!

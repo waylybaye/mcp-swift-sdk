@@ -65,9 +65,9 @@ extension MCPClientError: LocalizedError {
   public var errorDescription: String? {
     switch self {
     case .versionMismatch(let received, let expected):
-      return "Version mismatch between server and client. Received: \(received), Expected: \(expected)"
+      "Version mismatch between server and client. Received: \(received), Expected: \(expected)"
     case .toolCallError(let executionErrors):
-      return "Error executing tool:\n\(executionErrors.map { $0.errorDescription ?? "unknown error" }.joined(separator: "\n\n"))"
+      "Error executing tool:\n\(executionErrors.map { $0.errorDescription ?? "unknown error" }.joined(separator: "\n\n"))"
     }
   }
 }

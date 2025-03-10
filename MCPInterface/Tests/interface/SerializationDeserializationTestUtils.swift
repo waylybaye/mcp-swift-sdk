@@ -53,7 +53,7 @@ func testDecodingOf<T: Decodable & Equatable>(_ value: T, _ json: String) throws
 }
 
 /// Test that encoding the value gives the expected json, and that decoding the json gives the expected value.
-func testEncodingDecoding<T: Codable & Equatable>(of value: T, _ json: String) throws {
+func testEncodingDecoding(of value: some Codable & Equatable, _ json: String) throws {
   try testEncodingOf(value, json)
   try testDecodingOf(value, json)
 }

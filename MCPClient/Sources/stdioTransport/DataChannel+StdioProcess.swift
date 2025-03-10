@@ -23,29 +23,27 @@ extension JSONRPCSetupError: LocalizedError {
   public var errorDescription: String? {
     switch self {
     case .missingStandardIO:
-      return "Missing standard IO"
+      "Missing standard IO"
     case .couldNotLocateExecutable(let executable, let error):
-      return "Could not locate executable \(executable) \(error ?? "")".trimmingCharacters(in: .whitespaces)
+      "Could not locate executable \(executable) \(error ?? "")".trimmingCharacters(in: .whitespaces)
     case .standardIOConnectionError(let message):
-      return "Could not connect to stdio: \(message)".trimmingCharacters(in: .whitespaces)
+      "Could not connect to stdio: \(message)".trimmingCharacters(in: .whitespaces)
     }
   }
 
   public var recoverySuggestion: String? {
     switch self {
     case .missingStandardIO:
-      return "Make sure that the Process that is passed as an argument has stdin, stdout and stderr set as a Pipe."
+      "Make sure that the Process that is passed as an argument has stdin, stdout and stderr set as a Pipe."
     case .couldNotLocateExecutable:
-      return "Check that the executable is findable given the PATH environment variable. If needed, pass the right environment to the process."
+      "Check that the executable is findable given the PATH environment variable. If needed, pass the right environment to the process."
     case .standardIOConnectionError:
-      return nil
+      nil
     }
   }
 }
 
 extension Transport {
-
-  // MARK: Public
 
   /// Creates a new `Transport` by launching the given executable with the specified arguments and attaching to its standard IO.
   public static func stdioProcess(
@@ -193,8 +191,6 @@ extension Transport {
     return Transport(writeHandler: writeHandler, dataSequence: outStream)
   }
 
-  // MARK: Private
-
   /// Finds the full path to the executable using the `which` command.
   private static func locate(executable: String, env: [String: String]? = nil) throws -> String {
     let process = Process()
@@ -266,8 +262,6 @@ extension Transport {
 
 final class Lifetime {
 
-  // MARK: Lifecycle
-
   init(onDeinit: @escaping () -> Void) {
     self.onDeinit = onDeinit
   }
@@ -275,8 +269,6 @@ final class Lifetime {
   deinit {
     onDeinit()
   }
-
-  // MARK: Private
 
   private let onDeinit: () -> Void
 

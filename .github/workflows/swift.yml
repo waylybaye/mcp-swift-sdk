@@ -47,7 +47,12 @@ jobs:
     runs-on: macos-15
     steps:
     - uses: actions/checkout@v4
+    - name: Set up Homebrew
+      id: set-up-homebrew
+      uses: Homebrew/actions/setup-homebrew@master
+    - name: Install swiftformat
+      run: brew install swiftformat
     - name: Run linter
-      run: swift package --allow-writing-to-package-directory format
+      run: swiftformat --config rules.swiftformat .
     - name: Verify that `swift package --allow-writing-to-package-directory format` did not change outputs (if it did, please re-run it and re-commit!)
       run: git diff --exit-code

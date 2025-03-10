@@ -12,18 +12,14 @@ import MCPInterface
 import SwiftAnthropic
 import SwiftUI
 
+/// Handle a chat conversation without stream.
 @MainActor
 @Observable
-/// Handle a chat conversation without stream.
 final class AnthropicNonStreamManager: ChatManager {
-
-  // MARK: Lifecycle
 
   init(service: AnthropicService) {
     self.service = service
   }
-
-  // MARK: Internal
 
   /// Messages sent from the user or received from Claude
   var messages = [ChatMessage]()
@@ -65,8 +61,6 @@ final class AnthropicNonStreamManager: ChatManager {
     task?.cancel()
     task = nil
   }
-
-  // MARK: Private
 
   /// Service to communicate with Anthropic API
   private let service: AnthropicService

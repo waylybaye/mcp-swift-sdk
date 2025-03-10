@@ -52,7 +52,7 @@ extension MCPConnectionTestSuite {
             }
             """),
         ])
-      #expect(resources.map { $0.name } == ["main.rs"])
+      #expect(resources.map(\.name) == ["main.rs"])
     }
 
     @Test("list resources with pagination")
@@ -143,7 +143,7 @@ extension MCPConnectionTestSuite {
             }
             """),
         ])
-      #expect(resources.map { $0.name } == ["main.rs", "utils.rs"])
+      #expect(resources.map(\.name) == ["main.rs", "utils.rs"])
     }
 
     @Test("receiving resources list changed notification")

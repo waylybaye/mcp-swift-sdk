@@ -5,8 +5,6 @@ import Testing
 extension MCPInterfaceTests {
   struct PromptOrResourceReferenceTest {
 
-    // MARK: Internal
-
     @Test
     func encodePrompt() throws {
       let value = PromptOrResourceReference.prompt(.init(name: "code_review"))
@@ -28,8 +26,6 @@ extension MCPInterfaceTests {
         }
         """)
     }
-
-    // MARK: Private
 
     private func testEncoding(of value: PromptOrResourceReference, _ json: String) throws {
       try testEncodingOf(value, json)
