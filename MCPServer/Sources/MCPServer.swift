@@ -10,8 +10,6 @@ import MCPInterface
 
 public actor MCPServer: MCPServerInterface {
 
-  // MARK: Lifecycle
-
   /// Creates a MCP server and connects to the client through the provided transport.
   /// The methods completes after connecting to the client.
   public init(
@@ -54,13 +52,11 @@ public actor MCPServer: MCPServerInterface {
     Task { try await self.updateRoots() }
   }
 
-  // MARK: Public
-
   public private(set) var clientInfo: ClientInfo
 
   public var roots: ReadOnlyCurrentValueSubject<CapabilityStatus<[Root]>, Never> {
     get async {
-      await .init(_roots.compactMap { $0 }.removeDuplicates().eraseToAnyPublisher())
+      await .init(_roots.compactMap(\.self).removeDuplicates().eraseToAnyPublisher())
     }
   }
 
@@ -126,8 +122,6 @@ public actor MCPServer: MCPServerInterface {
     try await connection.notifyToolListChanged(nil)
   }
 
-  // MARK: Private
-
   private let _roots = CurrentValueSubject<CapabilityStatus<[Root]>?, Never>(nil)
 
   private var capabilities: ServerCapabilityHandlers
@@ -146,7 +140,7 @@ public actor MCPServer: MCPServerInterface {
   {
     try await withCheckedThrowingContinuation { (_ continuation: CheckedContinuation<ClientInfo, Error>) in
       Task {
-        for await(request, completion) in await connection.requestsToHandle {
+        for await (request, completion) in await connection.requestsToHandle {
           if case .initialize(let params) = request {
             do {
               try await initializeRequestHook(params)
@@ -199,7 +193,7 @@ public actor MCPServer: MCPServerInterface {
   {
     if let handler {
       do {
-        return .success(try await handler(params))
+        return try await .success(handler(params))
       } catch {
         if let err = error as? JSONRPCResponseError<JSONRPC.JSONValue> {
           return .failure(err)
@@ -242,7 +236,7 @@ public actor MCPServer: MCPServerInterface {
   private func startListeningToRequests() async {
     let requests = await connection.requestsToHandle
     Task { [weak self] in
-      for await(request, completion) in requests {
+      for await (request, completion) in requests {
         guard let self else {
           completion(.failure(.init(
             code: JRPCErrorCodes.internalError.rawValue,

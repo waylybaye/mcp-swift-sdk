@@ -6,8 +6,6 @@ import Combine
 /// Like `CurrentValueSubject`, but read-only other than for its owner.
 public class ReadOnlyCurrentValueSubject<Output, Failure>: Publisher where Failure: Error {
 
-  // MARK: Lifecycle
-
   public init(_ value: Output, setValue: @escaping ((Output) -> Void) -> Void) {
     currentValueSubject = .init(value)
     setValue { [weak self] in
@@ -33,8 +31,6 @@ public class ReadOnlyCurrentValueSubject<Output, Failure>: Publisher where Failu
     self.cancellable = cancellable
   }
 
-  // MARK: Public
-
   public private(set) var value: Output {
     get { currentValueSubject.value }
     set { currentValueSubject.value = newValue }
@@ -43,8 +39,6 @@ public class ReadOnlyCurrentValueSubject<Output, Failure>: Publisher where Failu
   public func receive<S>(subscriber: S) where S: Subscriber, Failure == S.Failure, Output == S.Input {
     currentValueSubject.receive(subscriber: subscriber)
   }
-
-  // MARK: Private
 
   private var cancellable: AnyCancellable?
 

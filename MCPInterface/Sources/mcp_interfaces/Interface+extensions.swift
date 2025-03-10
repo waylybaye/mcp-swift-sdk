@@ -3,8 +3,6 @@ import Foundation
 // MARK: AnyMeta + Codable
 extension AnyMeta {
 
-  // MARK: Lifecycle
-
   public init(from decoder: Decoder) throws {
     value = try JSON(from: decoder)
   }
@@ -12,8 +10,6 @@ extension AnyMeta {
   public init(_ value: JSON) {
     self.value = value
   }
-
-  // MARK: Public
 
   public func encode(to encoder: Encoder) throws {
     try value.encode(to: encoder)
@@ -23,8 +19,6 @@ extension AnyMeta {
 
 // MARK: StringOrNumber + Codable
 extension StringOrNumber {
-
-  // MARK: Lifecycle
 
   public init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
@@ -36,8 +30,6 @@ extension StringOrNumber {
       throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid progress token")
     }
   }
-
-  // MARK: Public
 
   public var string: String? {
     guard case .string(let value) = self else {
@@ -69,8 +61,6 @@ extension StringOrNumber {
 
 extension AnyParams {
 
-  // MARK: Lifecycle
-
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: String.self)
     var values: [String: JSON.Value] = [:]
@@ -86,8 +76,6 @@ extension AnyParams {
       value = values
     }
   }
-
-  // MARK: Public
 
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: String.self)
@@ -105,13 +93,11 @@ extension AnyParams {
 
 extension AnyParamsWithProgressToken {
 
-  // MARK: Lifecycle
-
   public init(from decoder: Decoder) throws {
     let hash = try JSON(from: decoder)
     switch hash {
     case .array:
-      throw DecodingError.dataCorruptedError(in: try decoder.unkeyedContainer(), debugDescription: "Unexpected array")
+      throw try DecodingError.dataCorruptedError(in: decoder.unkeyedContainer(), debugDescription: "Unexpected array")
     case .object(var object):
       if case .object(let metaHash) = object["_meta"] {
         let data = try JSONEncoder().encode(metaHash)
@@ -127,15 +113,13 @@ extension AnyParamsWithProgressToken {
         let json = try JSONDecoder().decode(JSON.self, from: data)
         switch json {
         case .array:
-          throw DecodingError.dataCorruptedError(in: try decoder.unkeyedContainer(), debugDescription: "Unexpected array")
+          throw try DecodingError.dataCorruptedError(in: decoder.unkeyedContainer(), debugDescription: "Unexpected array")
         case .object(let val):
           value = val
         }
       }
     }
   }
-
-  // MARK: Public
 
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: String.self)
@@ -151,24 +135,20 @@ extension AnyParamsWithProgressToken {
 // MARK: TextContentOrImageContentOrEmbeddedResource + Codable
 extension TextContentOrImageContentOrEmbeddedResource {
 
-  // MARK: Lifecycle
-
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: String.self)
     let type = try container.decode(String.self, forKey: "type")
     switch type {
     case "text":
-      self = .text(try .init(from: decoder))
+      self = try .text(.init(from: decoder))
     case "image":
-      self = .image(try .init(from: decoder))
+      self = try .image(.init(from: decoder))
     case "resource":
-      self = .embeddedResource(try .init(from: decoder))
+      self = try .embeddedResource(.init(from: decoder))
     default:
       throw DecodingError.dataCorruptedError(forKey: "type", in: container, debugDescription: "Invalid content. Got type \(type)")
     }
   }
-
-  // MARK: Public
 
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -208,22 +188,18 @@ extension TextContentOrImageContentOrEmbeddedResource {
 // MARK: TextOrImageContent + Codable
 extension TextOrImageContent {
 
-  // MARK: Lifecycle
-
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: String.self)
     let type = try container.decode(String.self, forKey: "type")
     switch type {
     case "text":
-      self = .text(try .init(from: decoder))
+      self = try .text(.init(from: decoder))
     case "image":
-      self = .image(try .init(from: decoder))
+      self = try .image(.init(from: decoder))
     default:
       throw DecodingError.dataCorruptedError(forKey: "type", in: container, debugDescription: "Invalid content. Got type \(type)")
     }
   }
-
-  // MARK: Public
 
   public func encode(to encoder: Encoder) throws {
     switch self {
@@ -254,20 +230,16 @@ extension TextOrImageContent {
 // MARK: TextOrBlobResourceContents + Codable
 extension TextOrBlobResourceContents {
 
-  // MARK: Lifecycle
-
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: String.self)
     if container.contains("text") {
       // It is not ideal to rely on the presence/absence of a key to know which type to decode.
       // But the specs doesn't specifies the type through a value that would be given to a well known key.
-      self = .text(try .init(from: decoder))
+      self = try .text(.init(from: decoder))
     } else {
-      self = .blob(try .init(from: decoder))
+      self = try .blob(.init(from: decoder))
     }
   }
-
-  // MARK: Public
 
   public func encode(to encoder: Encoder) throws {
     switch self {
@@ -298,19 +270,15 @@ extension TextOrBlobResourceContents {
 // MARK: PromptOrResourceReference + Codable
 extension PromptOrResourceReference {
 
-  // MARK: Lifecycle
-
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: String.self)
     let type = try container.decode(String.self, forKey: "type")
     if type == "ref/prompt" {
-      self = .prompt(try .init(from: decoder))
+      self = try .prompt(.init(from: decoder))
     } else {
-      self = .resource(try .init(from: decoder))
+      self = try .resource(.init(from: decoder))
     }
   }
-
-  // MARK: Public
 
   public func encode(to encoder: Encoder) throws {
     switch self {
@@ -347,29 +315,29 @@ extension ClientRequest {
 
     switch method {
     case Requests.initialize:
-      self = .initialize(try InitializeRequest(from: decoder).params)
+      self = try .initialize(InitializeRequest(from: decoder).params)
     case Requests.listPrompts:
-      self = .listPrompts(try ListPromptsRequest(from: decoder).params)
+      self = try .listPrompts(ListPromptsRequest(from: decoder).params)
     case Requests.getPrompt:
-      self = .getPrompt(try GetPromptRequest(from: decoder).params)
+      self = try .getPrompt(GetPromptRequest(from: decoder).params)
     case Requests.listResources:
-      self = .listResources(try ListResourcesRequest(from: decoder).params)
+      self = try .listResources(ListResourcesRequest(from: decoder).params)
     case Requests.readResource:
-      self = .readResource(try ReadResourceRequest(from: decoder).params)
+      self = try .readResource(ReadResourceRequest(from: decoder).params)
     case Requests.subscribeToResource:
-      self = .subscribeToResource(try SubscribeRequest(from: decoder).params)
+      self = try .subscribeToResource(SubscribeRequest(from: decoder).params)
     case Requests.unsubscribeToResource:
-      self = .unsubscribeToResource(try UnsubscribeRequest(from: decoder).params)
+      self = try .unsubscribeToResource(UnsubscribeRequest(from: decoder).params)
     case Requests.listResourceTemplates:
-      self = .listResourceTemplates(try ListResourceTemplatesRequest(from: decoder).params)
+      self = try .listResourceTemplates(ListResourceTemplatesRequest(from: decoder).params)
     case Requests.listTools:
-      self = .listTools(try ListToolsRequest(from: decoder).params)
+      self = try .listTools(ListToolsRequest(from: decoder).params)
     case Requests.callTool:
-      self = .callTool(try CallToolRequest(from: decoder).params)
+      self = try .callTool(CallToolRequest(from: decoder).params)
     case Requests.autocomplete:
-      self = .complete(try CompleteRequest(from: decoder).params)
+      self = try .complete(CompleteRequest(from: decoder).params)
     case Requests.setLoggingLevel:
-      self = .setLogLevel(try SetLevelRequest(from: decoder).params)
+      self = try .setLogLevel(SetLevelRequest(from: decoder).params)
     default:
       throw DecodingError.dataCorruptedError(
         forKey: "method",
@@ -387,13 +355,13 @@ extension ClientNotification {
     let method = try container.decode(String.self, forKey: "method")
     switch method {
     case Notifications.cancelled:
-      self = .cancelled(try CancelledNotification(from: decoder).params)
+      self = try .cancelled(CancelledNotification(from: decoder).params)
     case Notifications.progress:
-      self = .progress(try ProgressNotification(from: decoder).params)
+      self = try .progress(ProgressNotification(from: decoder).params)
     case Notifications.initialized:
-      self = .initialized(try InitializedNotification(from: decoder).params ?? .init())
+      self = try .initialized(InitializedNotification(from: decoder).params ?? .init())
     case Notifications.rootsListChanged:
-      self = .rootsListChanged(try RootsListChangedNotification(from: decoder).params ?? .init())
+      self = try .rootsListChanged(RootsListChangedNotification(from: decoder).params ?? .init())
     default:
       throw DecodingError.dataCorruptedError(
         forKey: "method",
@@ -410,9 +378,9 @@ extension ServerRequest {
     let method = try container.decode(String.self, forKey: "method")
     switch method {
     case Requests.createMessage:
-      self = .createMessage(try CreateSamplingMessageRequest(from: decoder).params)
+      self = try .createMessage(CreateSamplingMessageRequest(from: decoder).params)
     case Requests.listRoots:
-      self = .listRoots(try ListRootsRequest(from: decoder).params)
+      self = try .listRoots(ListRootsRequest(from: decoder).params)
     default:
       throw DecodingError.dataCorruptedError(
         forKey: "method",
@@ -429,19 +397,19 @@ extension ServerNotification {
     let method = try container.decode(String.self, forKey: "method")
     switch method {
     case Notifications.cancelled:
-      self = .cancelled(try CancelledNotification(from: decoder).params)
+      self = try .cancelled(CancelledNotification(from: decoder).params)
     case Notifications.progress:
-      self = .progress(try ProgressNotification(from: decoder).params)
+      self = try .progress(ProgressNotification(from: decoder).params)
     case Notifications.loggingMessage:
-      self = .loggingMessage(try LoggingMessageNotification(from: decoder).params)
+      self = try .loggingMessage(LoggingMessageNotification(from: decoder).params)
     case Notifications.resourceUpdated:
-      self = .resourceUpdated(try ResourceUpdatedNotification(from: decoder).params)
+      self = try .resourceUpdated(ResourceUpdatedNotification(from: decoder).params)
     case Notifications.resourceListChanged:
-      self = .resourceListChanged(try ResourceListChangedNotification(from: decoder).params ?? .init())
+      self = try .resourceListChanged(ResourceListChangedNotification(from: decoder).params ?? .init())
     case Notifications.toolListChanged:
-      self = .toolListChanged(try ToolListChangedNotification(from: decoder).params ?? .init())
+      self = try .toolListChanged(ToolListChangedNotification(from: decoder).params ?? .init())
     case Notifications.promptListChanged:
-      self = .promptListChanged(try PromptListChangedNotification(from: decoder).params ?? .init())
+      self = try .promptListChanged(PromptListChangedNotification(from: decoder).params ?? .init())
     default:
       throw DecodingError.dataCorruptedError(
         forKey: "method",
@@ -659,7 +627,7 @@ extension JRPCError: LocalizedError {
   public var errorDescription: String? {
     if let data {
       do {
-        if let dataStr = String(data: try JSONEncoder().encode(data), encoding: .utf8) {
+        if let dataStr = try String(data: JSONEncoder().encode(data), encoding: .utf8) {
           return "JRPC error \(code): \(message)\n\(dataStr)"
         }
       } catch {

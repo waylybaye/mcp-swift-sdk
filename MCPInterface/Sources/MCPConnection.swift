@@ -8,8 +8,6 @@ public typealias HandleRequest<Request> = (Request, (AnyJRPCResponse) -> Void)
 /// Note: this class is not thread safe, and should be used in a thread safe context (like within an actor).
 package class MCPConnection<Request: Decodable & Equatable, Notification: Decodable & Equatable> {
 
-  // MARK: Lifecycle
-
   public init(
     transport: Transport)
     throws
@@ -40,16 +38,10 @@ package class MCPConnection<Request: Decodable & Equatable, Notification: Decoda
     Task { await listenToIncomingMessages() }
   }
 
-  // MARK: Public
-
   public private(set) var notifications: AsyncStream<Notification>
   public private(set) var requestsToHandle: AsyncStream<HandleRequest<Request>>
 
-  // MARK: Package
-
   package let jrpcSession: JSONRPCSession
-
-  // MARK: Private
 
   private var sendNotificationToStream: ((Notification) -> Void) = { _ in }
 

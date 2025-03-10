@@ -51,7 +51,7 @@ extension MCPConnectionTestSuite {
             }
             """),
         ])
-      #expect(resources.map { $0.uriTemplate } == ["file:///{path}"])
+      #expect(resources.map(\.uriTemplate) == ["file:///{path}"])
     }
 
     @Test("list resource templates with pagination")
@@ -142,7 +142,7 @@ extension MCPConnectionTestSuite {
             }
             """),
         ])
-      #expect(resources.map { $0.uriTemplate } == ["file:///{path}", "images:///{path}"])
+      #expect(resources.map(\.uriTemplate) == ["file:///{path}", "images:///{path}"])
     }
 
   }

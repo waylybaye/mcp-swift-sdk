@@ -10,8 +10,6 @@ import SwiftUI
 /// A view for the user to enter chat messages
 struct ChatInputView: View {
 
-  // MARK: Internal
-
   /// Is a streaming chat response in progress
   let isStreamingResponse: Bool
 
@@ -28,8 +26,6 @@ struct ChatInputView: View {
     }
     .padding(8)
   }
-
-  // MARK: Private
 
   private enum FocusedField {
     case newMessageText

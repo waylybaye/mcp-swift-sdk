@@ -12,8 +12,6 @@ import SwiftUI
 @main
 struct MCPClientChatApp: App {
 
-  // MARK: Lifecycle
-
   init() {
     let service = AnthropicServiceFactory.service(apiKey: "", betaHeaders: nil, debugEnabled: true)
 
@@ -29,8 +27,6 @@ struct MCPClientChatApp: App {
     //
     //      _chatManager = State(initialValue: openAIChatNonStreamManager)
   }
-
-  // MARK: Internal
 
   var body: some Scene {
     WindowGroup {
@@ -49,8 +45,7 @@ struct MCPClientChatApp: App {
     .windowStyle(.hiddenTitleBar)
   }
 
-  // MARK: Private
-
   @State private var chatManager: ChatManager
+
   private let githubClient = GIthubMCPClient()
 }

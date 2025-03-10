@@ -12,8 +12,6 @@ class MCPClientTestSuite { }
 
 class MCPClientTest {
 
-  // MARK: Lifecycle
-
   init() {
     version = "1.0.0"
     name = "TestClient"
@@ -41,8 +39,6 @@ class MCPClientTest {
     connection.listResourcesStub = { [] }
     connection.listResourceTemplatesStub = { [] }
   }
-
-  // MARK: Internal
 
   let version: String
   let capabilities: ClientCapabilities

@@ -8,8 +8,6 @@ import MCPInterface
 
 public actor MCPClient: MCPClientInterface {
 
-  // MARK: Lifecycle
-
   /// Creates a MCP client and connects to the server through the provided transport.
   /// The methods completes after connecting to the server.
   public init(
@@ -19,7 +17,7 @@ public actor MCPClient: MCPClientInterface {
   async throws {
     try await self.init(
       capabilities: capabilities,
-      connection: try MCPClientConnection(
+      connection: MCPClientConnection(
         info: info,
         capabilities: ClientCapabilities(
           experimental: nil, // TODO: support experimental requests
@@ -47,31 +45,29 @@ public actor MCPClient: MCPClientInterface {
     Task { try await self.updateResourceTemplates() }
   }
 
-  // MARK: Public
-
   public private(set) var serverInfo: ServerInfo
 
   public var tools: ReadOnlyCurrentValueSubject<CapabilityStatus<[Tool]>, Never> {
     get async {
-      await .init(_tools.compactMap { $0 }.removeDuplicates().eraseToAnyPublisher())
+      await .init(_tools.compactMap(\.self).removeDuplicates().eraseToAnyPublisher())
     }
   }
 
   public var prompts: ReadOnlyCurrentValueSubject<CapabilityStatus<[Prompt]>, Never> {
     get async {
-      await .init(_prompts.compactMap { $0 }.removeDuplicates().eraseToAnyPublisher())
+      await .init(_prompts.compactMap(\.self).removeDuplicates().eraseToAnyPublisher())
     }
   }
 
   public var resources: ReadOnlyCurrentValueSubject<CapabilityStatus<[Resource]>, Never> {
     get async {
-      await .init(_resources.compactMap { $0 }.removeDuplicates().eraseToAnyPublisher())
+      await .init(_resources.compactMap(\.self).removeDuplicates().eraseToAnyPublisher())
     }
   }
 
   public var resourceTemplates: ReadOnlyCurrentValueSubject<CapabilityStatus<[ResourceTemplate]>, Never> {
     get async {
-      await .init(_resourceTemplates.compactMap { $0 }.removeDuplicates().eraseToAnyPublisher())
+      await .init(_resourceTemplates.compactMap(\.self).removeDuplicates().eraseToAnyPublisher())
     }
   }
 
@@ -99,7 +95,7 @@ public actor MCPClient: MCPClientInterface {
     }
     // If there has been an error during the execution, throw it
     if result.isError == true {
-      let errors = result.content.compactMap { $0.text }.map { CallToolResult.ExecutionError(text: $0.text) }
+      let errors = result.content.compactMap(\.text).map { CallToolResult.ExecutionError(text: $0.text) }
       throw MCPClientError.toolCallError(executionErrors: errors)
     }
     return result
@@ -119,11 +115,7 @@ public actor MCPClient: MCPClientInterface {
     return try await connection.readResource(.init(uri: uri))
   }
 
-  // MARK: Internal
-
   let connection: MCPClientConnectionInterface
-
-  // MARK: Private
 
   private let capabilities: ClientCapabilityHandlers
 
@@ -185,7 +177,7 @@ public actor MCPClient: MCPClientInterface {
   private func startListeningToRequests() async {
     let requests = await connection.requestsToHandle
     Task { [weak self] in
-      for await(request, completion) in requests {
+      for await (request, completion) in requests {
         guard let self else {
           completion(.failure(.init(
             code: JRPCErrorCodes.internalError.rawValue,
@@ -210,7 +202,7 @@ public actor MCPClient: MCPClientInterface {
   {
     if let handler {
       do {
-        return .success(try await handler(params))
+        return try await .success(handler(params))
       } catch {
         return .failure(.init(
           code: JRPCErrorCodes.internalError.rawValue,

@@ -7,8 +7,6 @@ extension MCPInterfaceTests {
 
     struct Deserialization {
 
-      // MARK: Internal
-
       @Test
       func decodeInitializeRequest() throws {
         try testDecoding(
@@ -218,8 +216,6 @@ extension MCPInterfaceTests {
             """,
           .setLogLevel(.init(level: .debug)))
       }
-
-      // MARK: Private
 
       private func testDecoding(of json: String, _ value: ClientRequest) throws {
         let data = json.data(using: .utf8)!

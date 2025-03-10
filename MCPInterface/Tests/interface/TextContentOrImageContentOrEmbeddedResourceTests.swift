@@ -6,8 +6,6 @@ import Testing
 extension MCPInterfaceTests {
   struct TextContentOrImageContentOrEmbeddedResourceTest {
 
-    // MARK: Internal
-
     @Test
     func decodeText() throws {
       let json = """
@@ -54,8 +52,6 @@ extension MCPInterfaceTests {
       #expect(value.embeddedResource?.resource.text?.uri == "resource://example")
       try testEncodingDecoding(of: value, json)
     }
-
-    // MARK: Private
 
     private func decode(_ jsonString: String) throws -> TextContentOrImageContentOrEmbeddedResource {
       let data = jsonString.data(using: .utf8)!

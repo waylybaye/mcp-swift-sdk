@@ -13,8 +13,6 @@ import SwiftUI
 
 final class GIthubMCPClient {
 
-  // MARK: Lifecycle
-
   init() {
     Task {
       do {
@@ -35,8 +33,6 @@ final class GIthubMCPClient {
     }
   }
 
-  // MARK: Internal
-
   /// Modern async/await approach
   func getClientAsync() async throws -> MCPClient? {
     for await client in clientInitialized.stream {
@@ -44,8 +40,6 @@ final class GIthubMCPClient {
     }
     return nil // Stream completed without a client
   }
-
-  // MARK: Private
 
   private var client: MCPClient?
   private let clientInitialized = AsyncStream.makeStream(of: MCPClient?.self)

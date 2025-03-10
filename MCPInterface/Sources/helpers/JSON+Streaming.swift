@@ -24,8 +24,6 @@ extension AsyncStream<Data> {
 
 extension Data {
 
-  // MARK: Internal
-
   /// Given a Data object that represents one or several valid JSON objects concatenated together, with the last one possibly truncated,
   /// return a list of Data objects, each representing a valid JSON object, as well as the optional truncated data.
   func parseJSONObjects() -> (objects: [Data], truncatedData: Data?) {
@@ -70,17 +68,15 @@ extension Data {
       }
     }
 
-    let truncatedData: Data?
-    if let lastChunkStartIndex = currentChunkStartIndex {
-      truncatedData = self[startIndex.advanced(by: lastChunkStartIndex) ..< startIndex.advanced(by: count)]
-    } else {
-      truncatedData = nil
-    }
+    let truncatedData: Data? =
+      if let lastChunkStartIndex = currentChunkStartIndex {
+        self[startIndex.advanced(by: lastChunkStartIndex) ..< startIndex.advanced(by: count)]
+      } else {
+        nil
+      }
 
     return (objects: objects, truncatedData: truncatedData)
   }
-
-  // MARK: Private
 
   private static let openBrace = UInt8(ascii: "{")
   private static let closeBrace = UInt8(ascii: "}")

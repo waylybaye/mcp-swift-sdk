@@ -13,8 +13,6 @@ import SwiftUI
 @MainActor
 struct ChatView: View {
 
-  // MARK: Internal
-
   let chatManager: ChatManager
 
   var body: some View {
@@ -30,8 +28,6 @@ struct ChatView: View {
         didTapStop: { chatManager.stop() })
     }
   }
-
-  // MARK: Private
 
   private func sendMessage(_ message: String) {
     guard !message.isEmpty else { return }

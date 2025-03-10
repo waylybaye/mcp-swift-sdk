@@ -6,8 +6,6 @@ import MCPInterface
 
 public actor MCPServerConnection: MCPServerConnectionInterface {
 
-  // MARK: Lifecycle
-
   public init(
     info: Implementation,
     capabilities: ServerCapabilities,
@@ -19,8 +17,6 @@ public actor MCPServerConnection: MCPServerConnectionInterface {
     self.info = info
     self.capabilities = capabilities
   }
-
-  // MARK: Public
 
   public let info: Implementation
 
@@ -71,8 +67,6 @@ public actor MCPServerConnection: MCPServerConnectionInterface {
   public func log(_ params: LoggingMessageNotification.Params) async throws {
     try await jrpcSession.send(LoggingMessageNotification(params: params))
   }
-
-  // MARK: Private
 
   private let _connection: MCPConnection<ClientRequest, ClientNotification>
 

@@ -7,8 +7,6 @@ import MCPServer
 /// A mock `MCPServerConnection` that can be used in tests.
 class MockMCPServerConnection: MCPServerConnectionInterface {
 
-  // MARK: Lifecycle
-
   required init(
     info: Implementation,
     capabilities: ServerCapabilities,
@@ -30,8 +28,6 @@ class MockMCPServerConnection: MCPServerConnectionInterface {
     }
     self.sendRequestToStream = sendRequestToStream
   }
-
-  // MARK: Internal
 
   /// Send a client notification.
   private(set) var sendNotificationToStream: ((ClientNotification) -> Void) = { _ in }

@@ -7,8 +7,6 @@ extension MCPInterfaceTests {
   enum AnyParamsTest {
     struct Serialization {
 
-      // MARK: Internal
-
       @Test
       func encodeWithNoValues() throws {
         try testEncoding(of: AnyParams(), """
@@ -58,16 +56,12 @@ extension MCPInterfaceTests {
             """)
       }
 
-      // MARK: Private
-
       private func testEncoding(of value: AnyParams, _ json: String) throws {
         try testEncodingOf(value, json)
       }
     }
 
     struct Deserialization {
-
-      // MARK: Internal
 
       @Test
       func decodeWithNoValues() throws {
@@ -117,8 +111,6 @@ extension MCPInterfaceTests {
             "key": .string("value"),
           ]))
       }
-
-      // MARK: Private
 
       private func testDecoding(of json: String, _ expected: AnyParams) throws {
         let data = json.data(using: .utf8)!

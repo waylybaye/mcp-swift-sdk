@@ -8,8 +8,6 @@ import Testing
 
 public final class MockTransport {
 
-  // MARK: Lifecycle
-
   public init() {
     let dataSequence = AsyncStream<Data>() { continuation in
       self.continuation = continuation
@@ -20,9 +18,7 @@ public final class MockTransport {
       dataSequence: dataSequence)
   }
 
-  // MARK: Public
-
-  public private(set) var dataChannel: DataChannel = .noop
+  public private(set) var dataChannel = DataChannel.noop
 
   public func onSendMessage(_ hook: @escaping (Data) -> Void) {
     let previousSendMessage = sendMessage
@@ -36,8 +32,6 @@ public final class MockTransport {
     let data = Data(message.utf8)
     continuation?.yield(data)
   }
-
-  // MARK: Private
 
   private var sendMessage: (Data) -> Void = { _ in }
 

@@ -10,8 +10,6 @@ import SwiftUI
 
 struct ChatMessageView: View {
 
-  // MARK: Internal
-
   /// The message to display
   let message: ChatMessage
 
@@ -32,8 +30,6 @@ struct ChatMessageView: View {
       adjustAnimationTriggerIfNecessary()
     }
   }
-
-  // MARK: Private
 
   /// State used to animate in the chat bubble if `animateIn` is true
   @State private var animationTrigger = false

@@ -95,7 +95,7 @@ extension MCPClientTestSuite {
             """),
         ])
 
-      let clientCapabilities = await(client.connection as? MCPClientConnection)?.capabilities
+      let clientCapabilities = await (client.connection as? MCPClientConnection)?.capabilities
       #expect(clientCapabilities?.roots?.listChanged == true)
       #expect(clientCapabilities?.sampling != nil)
     }
