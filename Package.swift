@@ -22,7 +22,6 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/gsabran/JSONRPC", from: "0.9.1"),
-    .package(url: "https://github.com/gohanlon/swift-memberwise-init-macro", from: "0.5.1"),
     .package(url: "https://github.com/ajevans99/swift-json-schema", from: "0.3.1"),
   ],
   targets: [
@@ -46,7 +45,6 @@ let package = Package(
       name: "MCPInterface",
       dependencies: [
         .product(name: "JSONRPC", package: "JSONRPC"),
-        .product(name: "MemberwiseInit", package: "swift-memberwise-init-macro"),
       ],
       path: "MCPInterface/Sources"),
 

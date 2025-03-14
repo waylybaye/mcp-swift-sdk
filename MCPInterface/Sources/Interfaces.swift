@@ -1,6 +1,5 @@
 import Foundation
 import JSONRPC
-import MemberwiseInit
 
 public typealias Transport = DataChannel
 
@@ -15,10 +14,14 @@ public typealias AnyJRPCResponse = Swift.Result<Encodable & Sendable, AnyJSONRPC
 // MARK: - CapabilityHandler
 
 /// Describes a capability of a client/server (see `ClientCapabilities` and `ServerCapabilities`), as well as how it is handled.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct CapabilityHandler<Info, Handler> {
   public let info: Info
   public let handler: Handler
+
+  public init(info: Info, handler: Handler) {
+    self.info = info
+    self.handler = handler
+  }
 }
 
 extension CapabilityHandler where Info == EmptyObject {

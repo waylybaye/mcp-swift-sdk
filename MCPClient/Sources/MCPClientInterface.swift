@@ -1,7 +1,6 @@
 import Foundation
 import JSONRPC
 import MCPInterface
-import MemberwiseInit
 
 // MARK: - MCPClientInterface
 
@@ -44,11 +43,18 @@ public protocol MCPClientInterface {
 /// Describes the supported capabilities of an MCP client, and how to handle each of the supported ones.
 ///
 /// Note: This is similar to `ClientCapabilities`, with the addition of the handler function.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ClientCapabilityHandlers {
   public let roots: CapabilityHandler<ListChangedCapability, ListRootsRequest.Handler>?
   public let sampling: CapabilityHandler<EmptyObject, CreateSamplingMessageRequest.Handler>?
   // TODO: add experimental
+
+  public init(
+    roots: CapabilityHandler<ListChangedCapability, ListRootsRequest.Handler>? = nil,
+    sampling: CapabilityHandler<EmptyObject, CreateSamplingMessageRequest.Handler>? = nil)
+  {
+    self.roots = roots
+    self.sampling = sampling
+  }
 }
 
 // MARK: - MCPClientError

@@ -1,8 +1,5 @@
-
 // Schema from the MCP protocol.
 // This file should map to https://github.com/modelcontextprotocol/specification/blob/main/schema/schema.ts
-
-import MemberwiseInit
 
 /// A progress token, used to associate progress notifications with the original request.
 public typealias ProgressToken = StringOrNumber
@@ -29,35 +26,46 @@ extension Optional: HasMetaValue where Wrapped: HasMetaValue {
 
 // MARK: - MetaProgress
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct MetaProgress: MetaType, Codable, Equatable {
   /// If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
   public let progressToken: ProgressToken
+
+  public init(progressToken: ProgressToken) {
+    self.progressToken = progressToken
+  }
 }
 
 // MARK: - AnyMeta
 
 /// A payload that contains meta information without a specific schema.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct AnyMeta: MetaType, Codable, Equatable, Sendable {
   /// Note: the value key is not represented in the serialization. Instead this types is serialized like `JSON`.
   public let value: JSON
+  public init(value: JSON) {
+    self.value = value
+  }
 }
 
 // MARK: - AnyParams
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct AnyParams: HasMetaValue, Equatable, Codable {
   public let _meta: AnyMeta?
   public let value: [String: JSON.Value]?
+  public init(_meta: AnyMeta? = nil, value: [String: JSON.Value]? = nil) {
+    self._meta = _meta
+    self.value = value
+  }
 }
 
 // MARK: - AnyParamsWithProgressToken
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct AnyParamsWithProgressToken: HasMetaValue, Codable, Equatable {
   public let _meta: MetaProgress?
   public let value: [String: JSON.Value]?
+  public init(_meta: MetaProgress? = nil, value: [String: JSON.Value]? = nil) {
+    self._meta = _meta
+    self.value = value
+  }
 }
 
 // MARK: - Request
@@ -121,7 +129,6 @@ public enum JRPCErrorCodes: Int {
 
 // MARK: - JRPCError
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct JRPCError: Error {
   /// The error type that occurred.
   public let code: Int
@@ -129,16 +136,20 @@ public struct JRPCError: Error {
   public let message: String
   /// Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.).
   public let data: JSON.Value?
+  public init(code: Int, message: String, data: JSON.Value? = nil) {
+    self.code = code
+    self.message = message
+    self.data = data
+  }
 }
 
 // MARK: - CancelledNotification
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct CancelledNotification: Notification, HasParams {
-  public let method = Notifications.cancelled
-  public let params: Params
+  public init(params: Params) {
+    self.params = params
+  }
 
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
   public struct Params: HasMetaValue, Codable, Equatable {
     public let _meta: AnyMeta?
     /// The ID of the request to cancel.
@@ -146,33 +157,71 @@ public struct CancelledNotification: Notification, HasParams {
     public let requestId: RequestId
     /// An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.
     public let reason: String?
+
+    public init(_meta: AnyMeta? = nil, requestId: RequestId, reason: String? = nil) {
+      self._meta = _meta
+      self.requestId = requestId
+      self.reason = reason
+    }
   }
+
+  public let method = Notifications.cancelled
+  public let params: Params
+
 }
 
 // MARK: - InitializeRequest
 
 /// This request is sent from the client to the server when it first connects, asking it to begin initialization.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct InitializeRequest: Request, HasParams {
-  public typealias Result = InitializeResult
-  public let method = Requests.initialize
-  public let params: Params
+  public init(params: Params) {
+    self.params = params
+  }
 
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
+  public typealias Result = InitializeResult
   public struct Params: HasMetaValue, Codable, Equatable {
     public let _meta: MetaProgress?
     /// The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.
     public let protocolVersion: String
     public let capabilities: ClientCapabilities
     public let clientInfo: Implementation
+
+    public init(
+      _meta: MetaProgress? = nil,
+      protocolVersion: String,
+      capabilities: ClientCapabilities,
+      clientInfo: Implementation)
+    {
+      self._meta = _meta
+      self.protocolVersion = protocolVersion
+      self.capabilities = capabilities
+      self.clientInfo = clientInfo
+    }
   }
+
+  public let method = Requests.initialize
+  public let params: Params
+
 }
 
 // MARK: - InitializeResult
 
 /// After receiving an initialize request from the client, the server sends this response.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct InitializeResult: Result {
+  public init(
+    _meta: AnyMeta? = nil,
+    protocolVersion: String,
+    capabilities: ServerCapabilities,
+    serverInfo: Implementation,
+    instructions: String? = nil)
+  {
+    self._meta = _meta
+    self.protocolVersion = protocolVersion
+    self.capabilities = capabilities
+    self.serverInfo = serverInfo
+    self.instructions = instructions
+  }
+
   public let _meta: AnyMeta?
   /// The version of the Model Context Protocol that the server wants to use. This may not match the version that the client requested. If the client cannot support this version, it MUST disconnect.
   public let protocolVersion: String
@@ -181,39 +230,47 @@ public struct InitializeResult: Result {
   /// Instructions describing how to use the server and its features.
   /// This can be used by clients to improve the LLM's understanding of available tools, resources, etc. It can be thought of like a "hint" to the model. For example, this information MAY be added to the system prompt.
   public let instructions: String?
+
 }
 
 // MARK: - InitializedNotification
 
 /// This notification is sent from the client to the server after initialization has finished.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct InitializedNotification: Notification {
   public let method = Notifications.initialized
   public let params: AnyParams?
+  public init(params: AnyParams? = nil) {
+    self.params = params
+  }
 }
 
 // MARK: - CapabilityInfo
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct CapabilityInfo: Codable, Equatable {
   /// Whether this client/server supports subscribing to updates about the capability.
   public let subscribe: Bool?
   /// Whether this client/server supports notifications for changes to the capability.
   public let listChanged: Bool?
+
+  public init(subscribe: Bool? = nil, listChanged: Bool? = nil) {
+    self.subscribe = subscribe
+    self.listChanged = listChanged
+  }
 }
 
 // MARK: - ListChangedCapability
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListChangedCapability: Codable, Equatable {
   /// Whether this client/server supports notifications for changes to the capability.
   public let listChanged: Bool?
+  public init(listChanged: Bool? = nil) {
+    self.listChanged = listChanged
+  }
 }
 
 // MARK: - ClientCapabilities
 
 /// Capabilities a client may support. Known capabilities are defined here, in this schema, but this is not a closed set: any client can define its own, additional capabilities.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ClientCapabilities: Codable, Equatable {
   /// Experimental, non-standard capabilities that the client supports.
   public let experimental: JSON?
@@ -221,15 +278,33 @@ public struct ClientCapabilities: Codable, Equatable {
   public let roots: ListChangedCapability?
   /// Present if the client supports sampling from an LLM.
   public let sampling: EmptyObject?
+
+  public init(experimental: JSON? = nil, roots: ListChangedCapability? = nil, sampling: EmptyObject? = nil) {
+    self.experimental = experimental
+    self.roots = roots
+    self.sampling = sampling
+  }
 }
 
 // MARK: - ServerCapabilities
 
 /// Capabilities that a server may support. Known capabilities are defined here, in this schema, but this is not a closed set: any server can define its own, additional capabilities.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ServerCapabilities: Codable, Equatable {
 
-  // MARK: Public
+  public init(
+    experimental: JSON? = nil,
+    logging: EmptyObject? = nil,
+    prompts: ListChangedCapability? = nil,
+    resources: CapabilityInfo? = nil,
+    tools: ListChangedCapability? = nil)
+  {
+    self.experimental = experimental
+    self.logging = logging
+    self.prompts = prompts
+    self.resources = resources
+    self.tools = tools
+  }
+
   /// Experimental, non-standard capabilities that the server supports
   public let experimental: JSON?
   /// Present if the server supports sending log messages to the client.
@@ -246,38 +321,47 @@ public struct ServerCapabilities: Codable, Equatable {
 // MARK: - Implementation
 
 /// Describes the name and version of an MCP implementation.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct Implementation: Codable, Equatable {
   public let name: String
   public let version: String
+
+  public init(name: String, version: String) {
+    self.name = name
+    self.version = version
+  }
 }
 
 // MARK: - PingRequest
 
 /// A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct PingRequest: Request, Codable {
   public typealias Result = EmptyResult
   public let method = Requests.ping
   public let params: AnyParamsWithProgressToken?
+
+  public init(params: AnyParamsWithProgressToken? = nil) {
+    self.params = params
+  }
 }
 
 // MARK: - EmptyResult
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct EmptyResult: Result, Codable, Sendable {
   public let _meta: AnyMeta?
+
+  public init(_meta: AnyMeta? = nil) {
+    self._meta = _meta
+  }
 }
 
 // MARK: - ProgressNotification
 
 /// An out-of-band notification used to inform the receiver of a progress update for a long-running request.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ProgressNotification: Notification, HasParams {
-  public let method = Notifications.progress
-  public let params: Params
+  public init(params: Params) {
+    self.params = params
+  }
 
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
   public struct Params: HasMetaValue, Codable, Equatable {
     public let _meta: AnyMeta?
     /// The progress token which was given in the initial request, used to associate this notification with the request that is proceeding.
@@ -286,7 +370,17 @@ public struct ProgressNotification: Notification, HasParams {
     public let progress: Double
     /// Total number of items to process (or total progress required), if known.
     public let total: Double?
+
+    public init(_meta: AnyMeta? = nil, progressToken: ProgressToken, progress: Double, total: Double? = nil) {
+      self._meta = _meta
+      self.progressToken = progressToken
+      self.progress = progress
+      self.total = total
+    }
   }
+
+  public let method = Notifications.progress
+  public let params: Params
 }
 
 // MARK: - PaginationParams
@@ -304,7 +398,7 @@ public protocol PaginationParams {
 extension Optional: PaginationParams where Wrapped: PaginationParams {
   public var cursor: Cursor? { self?.cursor }
 
-  public static func updating(cursor: Cursor?, from params: Self?) -> Self {
+  public static func updating(cursor: Cursor? = nil, from params: Self? = nil) -> Self {
     Wrapped.updating(cursor: cursor, from: params ?? nil)
   }
 }
@@ -314,14 +408,18 @@ extension Optional: PaginationParams where Wrapped: PaginationParams {
 /// Note: while we could merge this with `PaginationParams` and remove the need for the extra protocol
 /// since all paginated requests currently use the same parameter, it felt better to have those two types
 /// to make it easier to evolve the code if the protocol evolves in the future.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct SharedPaginationParams: PaginationParams, HasMetaValue, Codable, Equatable {
-  public static func updating(cursor: Cursor?, from params: SharedPaginationParams?) -> SharedPaginationParams {
+  public static func updating(cursor: Cursor? = nil, from params: SharedPaginationParams? = nil) -> SharedPaginationParams {
     .init(_meta: params?._meta, cursor: cursor)
   }
 
   public let _meta: MetaProgress?
   public let cursor: Cursor?
+
+  public init(_meta: MetaProgress? = nil, cursor: Cursor? = nil) {
+    self._meta = _meta
+    self.cursor = cursor
+  }
 }
 
 // MARK: - PaginatedRequest
@@ -340,30 +438,37 @@ public protocol PaginatedResult: Result {
 // MARK: - ListResourcesRequest
 
 /// Sent from the client to request a list of resources the server has.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListResourcesRequest: PaginatedRequest {
   public typealias Result = ListResourcesResult
 
   public let method = Requests.listResources
   public let params: SharedPaginationParams?
+
+  public init(params: SharedPaginationParams? = nil) {
+    self.params = params
+  }
 }
 
 // MARK: - ListResourcesResult
 
 /// The server's response to a resources/list request from the client.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListResourcesResult: PaginatedResult {
   public let _meta: AnyMeta?
   public let nextCursor: Cursor?
   public let resources: [Resource]
+
+  public init(_meta: AnyMeta? = nil, nextCursor: Cursor? = nil, resources: [Resource]) {
+    self._meta = _meta
+    self.nextCursor = nextCursor
+    self.resources = resources
+  }
 }
 
 // MARK: - ListResourceTemplatesRequest
 
 /// Sent from the client to request a list of resource templates the server has.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListResourceTemplatesRequest: PaginatedRequest {
-  public init(params: SharedPaginationParams) {
+  public init(params: SharedPaginationParams? = nil) {
     self.params = params
   }
 
@@ -376,112 +481,162 @@ public struct ListResourceTemplatesRequest: PaginatedRequest {
 // MARK: - ListResourceTemplatesResult
 
 /// The server's response to a resources/templates/list request from the client.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListResourceTemplatesResult: PaginatedResult {
   public let _meta: AnyMeta?
   public let nextCursor: Cursor?
   public let resourceTemplates: [ResourceTemplate]
+
+  public init(_meta: AnyMeta? = nil, nextCursor: Cursor? = nil, resourceTemplates: [ResourceTemplate]) {
+    self._meta = _meta
+    self.nextCursor = nextCursor
+    self.resourceTemplates = resourceTemplates
+  }
 }
 
 // MARK: - ReadResourceRequest
 
 /// Sent from the client to the server, to read a specific resource URI.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ReadResourceRequest: Request, HasParams {
+  public init(params: Params) {
+    self.params = params
+  }
+
   public typealias Result = ReadResourceResult
 
-  public let method = Requests.readResource
-  public let params: Params
-
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
   public struct Params: HasMetaValue, Codable, Equatable {
     public let _meta: MetaProgress?
     /// The URI of the resource to read. The URI can use any protocol; it is up to the server how to interpret it.
     /// @format uri
     public let uri: String
+
+    public init(_meta: MetaProgress? = nil, uri: String) {
+      self._meta = _meta
+      self.uri = uri
+    }
   }
+
+  public let method = Requests.readResource
+  public let params: Params
+
 }
 
 // MARK: - ReadResourceResult
 
 /// The server's response to a resources/read request from the client.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ReadResourceResult: Result {
   public let _meta: AnyMeta?
   public let contents: [TextOrBlobResourceContents]
+
+  public init(_meta: AnyMeta? = nil, contents: [TextOrBlobResourceContents]) {
+    self._meta = _meta
+    self.contents = contents
+  }
 }
 
 // MARK: - ResourceListChangedNotification
 
 /// An optional notification from the server to the client, informing it that the list of resources it can read from has changed. This may be issued by servers without any previous subscription from the client.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ResourceListChangedNotification: Notification {
 
   public let method = Notifications.resourceListChanged
   public let params: AnyParams?
+
+  public init(params: AnyParams? = nil) {
+    self.params = params
+  }
 }
 
 // MARK: - SubscribeRequest
 
 /// Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct SubscribeRequest: Request, HasParams {
+  public init(params: Params) {
+    self.params = params
+  }
+
   public typealias Result = EmptyResult
 
-  public let method = Requests.subscribeToResource
-  public let params: Params
-
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
   public struct Params: HasMetaValue, Codable, Equatable {
     public let _meta: MetaProgress?
     /// The URI of the resource to subscribe to. The URI can use any protocol; it is up to the server how to interpret it.
     /// @format uri
     public let uri: String
+
+    public init(_meta: MetaProgress? = nil, uri: String) {
+      self._meta = _meta
+      self.uri = uri
+    }
   }
+
+  public let method = Requests.subscribeToResource
+  public let params: Params
+
 }
 
 // MARK: - UnsubscribeRequest
 
 /// Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct UnsubscribeRequest: Request, HasParams {
+  public init(params: Params) {
+    self.params = params
+  }
+
   public typealias Result = EmptyResult
 
-  public let method = Requests.unsubscribeToResource
-  public let params: Params
-
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
   public struct Params: HasMetaValue, Codable, Equatable {
     public let _meta: MetaProgress?
     /// The URI of the resource to unsubscribe from.
     /// @format uri
     public let uri: String
+
+    public init(_meta: MetaProgress? = nil, uri: String) {
+      self._meta = _meta
+      self.uri = uri
+    }
   }
+
+  public let method = Requests.unsubscribeToResource
+  public let params: Params
+
 }
 
 // MARK: - ResourceUpdatedNotification
 
 /// A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a resources/subscribe request.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ResourceUpdatedNotification: Notification, HasParams {
 
   public let method = Notifications.resourceUpdated
   public let params: Params
 
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
+  public init(params: Params) {
+    self.params = params
+  }
+
   public struct Params: HasMetaValue, Codable, Equatable {
     public let _meta: AnyMeta?
     /// The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.
     /// @format uri
     public let uri: String
+
+    public init(_meta: AnyMeta? = nil, uri: String) {
+      self._meta = _meta
+      self.uri = uri
+    }
   }
 }
 
 // MARK: - Resource
 
 /// A known resource that the server is capable of reading.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct Resource: Annotated, Codable, Equatable {
+  public init(annotations: Annotations? = nil, uri: String, name: String, description: String? = nil, mimeType: String? = nil) {
+    self.annotations = annotations
+    self.uri = uri
+    self.name = name
+    self.description = description
+    self.mimeType = mimeType
+  }
+
   public let annotations: Annotations?
   /// The URI of this resource.
   /// @format uri
@@ -494,13 +649,27 @@ public struct Resource: Annotated, Codable, Equatable {
   public let description: String?
   /// The MIME type of this resource, if known.
   public let mimeType: String?
+
 }
 
 // MARK: - ResourceTemplate
 
 /// A template description for resources available on the server.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ResourceTemplate: Annotated, Codable, Equatable {
+  public init(
+    annotations: Annotations? = nil,
+    uriTemplate: String,
+    name: String,
+    description: String? = nil,
+    mimeType: String? = nil)
+  {
+    self.annotations = annotations
+    self.uriTemplate = uriTemplate
+    self.name = name
+    self.description = description
+    self.mimeType = mimeType
+  }
+
   public let annotations: Annotations?
   /// A URI template (according to RFC 6570) that can be used to construct resource URIs.
   /// @format uri
@@ -513,6 +682,7 @@ public struct ResourceTemplate: Annotated, Codable, Equatable {
   public let description: String?
   /// The MIME type for all resources that match this template. This should only be included if all resources matching this template have the same type.
   public let mimeType: String?
+
 }
 
 // MARK: - ResourceContents
@@ -528,7 +698,6 @@ public protocol ResourceContents {
 
 // MARK: - TextResourceContents
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct TextResourceContents: Codable, Equatable, ResourceContents {
   /// The URI of this resource.
   public let uri: String
@@ -536,11 +705,16 @@ public struct TextResourceContents: Codable, Equatable, ResourceContents {
   public let mimeType: String?
   /// The text of the item. This must only be set if the item can actually be represented as text (not binary data).
   public let text: String
+
+  public init(uri: String, mimeType: String? = nil, text: String) {
+    self.uri = uri
+    self.mimeType = mimeType
+    self.text = text
+  }
 }
 
 // MARK: - BlobResourceContents
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct BlobResourceContents: Codable, Equatable, ResourceContents {
   /// The URI of this resource.
   public let uri: String
@@ -549,65 +723,92 @@ public struct BlobResourceContents: Codable, Equatable, ResourceContents {
   /// A base64-encoded string representing the binary data of the item.
   /// @format byte
   public let blob: String
+
+  public init(uri: String, mimeType: String? = nil, blob: String) {
+    self.uri = uri
+    self.mimeType = mimeType
+    self.blob = blob
+  }
 }
 
 // MARK: - ListPromptsRequest
 
 /// Sent from the client to request a list of prompts and prompt templates the server has.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListPromptsRequest: PaginatedRequest {
 
   public typealias Result = ListPromptsResult
 
   public let method = Requests.listPrompts
   public let params: SharedPaginationParams?
+
+  public init(params: SharedPaginationParams? = nil) {
+    self.params = params
+  }
 }
 
 // MARK: - ListPromptsResult
 
 /// The server's response to a prompts/list request from the client.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListPromptsResult: PaginatedResult {
   public let _meta: AnyMeta?
   public let nextCursor: Cursor?
   public let prompts: [Prompt]
+
+  public init(_meta: AnyMeta? = nil, nextCursor: Cursor? = nil, prompts: [Prompt]) {
+    self._meta = _meta
+    self.nextCursor = nextCursor
+    self.prompts = prompts
+  }
 }
 
 // MARK: - GetPromptRequest
 
 /// Used by the client to get a prompt provided by the server.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct GetPromptRequest: Request, HasParams {
+  public init(params: Params) {
+    self.params = params
+  }
+
   public typealias Result = GetPromptResult
 
-  public let method = Requests.getPrompt
-  public let params: Params
-
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
   public struct Params: HasMetaValue, Codable, Equatable {
     public let _meta: MetaProgress?
     /// The name of the prompt or prompt template.
     public let name: String
     /// Arguments to use for templating the prompt.
     public let arguments: JSON?
+
+    public init(_meta: MetaProgress? = nil, name: String, arguments: JSON? = nil) {
+      self._meta = _meta
+      self.name = name
+      self.arguments = arguments
+    }
   }
+
+  public let method = Requests.getPrompt
+  public let params: Params
+
 }
 
 // MARK: - GetPromptResult
 
 /// The server's response to a prompts/get request from the client.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct GetPromptResult: Result {
   public let _meta: AnyMeta?
   /// An optional description for the prompt.
   public let description: String?
   public let messages: [PromptMessage]
+
+  public init(_meta: AnyMeta? = nil, description: String? = nil, messages: [PromptMessage]) {
+    self._meta = _meta
+    self.description = description
+    self.messages = messages
+  }
 }
 
 // MARK: - Prompt
 
 /// A prompt or prompt template that the server offers.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct Prompt: Codable, Equatable {
   /// The name of the prompt or prompt template.
   public let name: String
@@ -615,12 +816,17 @@ public struct Prompt: Codable, Equatable {
   public let description: String?
   /// A list of arguments to use for templating the prompt.
   public let arguments: [PromptArgument]
+
+  public init(name: String, description: String? = nil, arguments: [PromptArgument]) {
+    self.name = name
+    self.description = description
+    self.arguments = arguments
+  }
 }
 
 // MARK: - PromptArgument
 
 /// Describes an argument that a prompt can accept.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct PromptArgument: Codable, Equatable {
   /// The name of the argument.
   public let name: String
@@ -628,6 +834,12 @@ public struct PromptArgument: Codable, Equatable {
   public let description: String?
   ///  Whether this argument must be provided.
   public let required: Bool?
+
+  public init(name: String, description: String? = nil, required: Bool? = nil) {
+    self.name = name
+    self.description = description
+    self.required = required
+  }
 }
 
 // MARK: - Role
@@ -644,10 +856,14 @@ public enum Role: String, Codable {
 ///
 /// This is similar to `SamplingMessage`, but also supports the embedding of
 /// resources from the MCP server.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct PromptMessage: Codable {
   public let role: Role
   public let content: TextContentOrImageContentOrEmbeddedResource
+
+  public init(role: Role, content: TextContentOrImageContentOrEmbeddedResource) {
+    self.role = role
+    self.content = content
+  }
 }
 
 // MARK: - EmbeddedResource
@@ -656,29 +872,35 @@ public struct PromptMessage: Codable {
 ///
 /// It is up to the client how best to render embedded resources for the benefit
 /// of the LLM and/or the user.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct EmbeddedResource: Annotated, Codable, Equatable {
   public let annotations: Annotations?
   public let type = ResourceTypes.resource
   public let resource: TextOrBlobResourceContents
+
+  public init(annotations: Annotations? = nil, resource: TextOrBlobResourceContents) {
+    self.annotations = annotations
+    self.resource = resource
+  }
 }
 
 // MARK: - PromptListChangedNotification
 
 /// An optional notification from the server to the client, informing it that the list of prompts it offers has changed. This may be issued by servers without any previous subscription from the client.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct PromptListChangedNotification: Notification {
 
   public let method = Notifications.promptListChanged
   public let params: AnyParams?
+
+  public init(params: AnyParams? = nil) {
+    self.params = params
+  }
 }
 
 // MARK: - ListToolsRequest
 
 /// Sent from the client to request a list of tools the server has.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListToolsRequest: PaginatedRequest {
-  public init(params: SharedPaginationParams) {
+  public init(params: SharedPaginationParams? = nil) {
     self.params = params
   }
 
@@ -691,11 +913,16 @@ public struct ListToolsRequest: PaginatedRequest {
 // MARK: - ListToolsResult
 
 /// The server's response to a tools/list request from the client.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListToolsResult: PaginatedResult {
   public let _meta: AnyMeta?
   public let nextCursor: Cursor?
   public let tools: [Tool]
+
+  public init(_meta: AnyMeta? = nil, nextCursor: Cursor? = nil, tools: [Tool]) {
+    self._meta = _meta
+    self.nextCursor = nextCursor
+    self.tools = tools
+  }
 }
 
 // MARK: - CallToolResult
@@ -710,54 +937,74 @@ public struct ListToolsResult: PaginatedResult {
 /// However, any errors in _finding_ the tool, an error indicating that the
 /// server does not support tool calls, or any other exceptional conditions,
 /// should be reported as an MCP error response.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct CallToolResult: Result {
+  public init(_meta: AnyMeta? = nil, content: [TextContentOrImageContentOrEmbeddedResource], isError: Bool? = nil) {
+    self._meta = _meta
+    self.content = content
+    self.isError = isError
+  }
+
+  /// An error that occurred during the execution of the tool.
+  public struct ExecutionError: Error, Codable {
+    public let text: String
+
+    public init(text: String) {
+      self.text = text
+    }
+  }
+
   public let _meta: AnyMeta?
   public let content: [TextContentOrImageContentOrEmbeddedResource]
   /// Whether the tool call ended in an error.
   /// If not set, this is assumed to be false (the call was successful).
   public let isError: Bool?
 
-  /// An error that occurred during the execution of the tool.
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
-  public struct ExecutionError: Error, Codable {
-    public let text: String
-  }
 }
 
 // MARK: - CallToolRequest
 
 /// Used by the client to invoke a tool provided by the server.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct CallToolRequest: Request, HasParams {
+  public init(params: Params) {
+    self.params = params
+  }
+
   public typealias Result = CallToolResult
 
-  public let method = Requests.callTool
-  public let params: Params
-
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
   public struct Params: HasMetaValue, Codable, Equatable {
     public let _meta: MetaProgress?
     public let name: String
     public let arguments: JSON?
+
+    public init(_meta: MetaProgress? = nil, name: String, arguments: JSON? = nil) {
+      self._meta = _meta
+      self.name = name
+      self.arguments = arguments
+    }
   }
+
+  public let method = Requests.callTool
+  public let params: Params
+
 }
 
 // MARK: - ToolListChangedNotification
 
 /// An optional notification from the server to the client, informing it that the list of tools it offers has changed. This may be issued by servers without any previous subscription from the client.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ToolListChangedNotification: Notification {
 
   public let method = Notifications.toolListChanged
   public let params: AnyParams?
+
+  public init(params: AnyParams? = nil) {
+    self.params = params
+  }
 }
 
 // MARK: - Tool
 
 // TODO: add the ability to cast this to a Tool<Input> while validating the schema
 /// Definition for a tool the client can call.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct Tool: Codable, Equatable {
   /// The name of the tool.
   public let name: String
@@ -766,35 +1013,47 @@ public struct Tool: Codable, Equatable {
   // TODO: Use a more specific type to represent the JSON schema type?
   /// A JSON Schema object defining the expected parameters for the tool.
   public let inputSchema: JSON
+
+  public init(name: String, description: String? = nil, inputSchema: JSON) {
+    self.name = name
+    self.description = description
+    self.inputSchema = inputSchema
+  }
 }
 
 // MARK: - SetLevelRequest
 
 /// A request from the client to the server, to enable or adjust logging.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct SetLevelRequest: Request, HasParams {
   public typealias Result = EmptyResult
 
   public let method = Requests.setLoggingLevel
   public let params: Params
 
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
+  public init(params: Params) {
+    self.params = params
+  }
+
   public struct Params: HasMetaValue, Codable, Equatable {
     public let _meta: MetaProgress?
     /// The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/logging/message.
     public let level: LoggingLevel
+
+    public init(_meta: MetaProgress? = nil, level: LoggingLevel) {
+      self._meta = _meta
+      self.level = level
+    }
   }
 }
 
 // MARK: - LoggingMessageNotification
 
 /// Notification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct LoggingMessageNotification: Notification, HasParams {
-  public let method = Notifications.loggingMessage
-  public let params: Params
+  public init(params: Params) {
+    self.params = params
+  }
 
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
   public struct Params: HasMetaValue, Codable, Equatable {
     public let _meta: AnyMeta?
     /// The severity of this log message.
@@ -803,7 +1062,18 @@ public struct LoggingMessageNotification: Notification, HasParams {
     public let logger: String?
     /// The data to be logged, such as a string message or an object. Any JSON serializable type is allowed here.
     public let data: JSON.Value
+
+    public init(_meta: AnyMeta? = nil, level: LoggingLevel, logger: String? = nil, data: JSON.Value) {
+      self._meta = _meta
+      self.level = level
+      self.logger = logger
+      self.data = data
+    }
   }
+
+  public let method = Notifications.loggingMessage
+  public let params: Params
+
 }
 
 // MARK: - LoggingLevel
@@ -826,12 +1096,36 @@ public enum LoggingLevel: String, Codable {
 // MARK: - CreateSamplingMessageRequest
 
 /// A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct CreateSamplingMessageRequest: Request, HasParams, Codable {
+  public init(params: Params) {
+    self.params = params
+  }
+
   public typealias Result = CreateMessageResult
 
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
   public struct Params: HasMetaValue, Codable, Equatable {
+    public init(
+      _meta: MetaProgress? = nil,
+      messages: [SamplingMessage],
+      modelPreferences: ModelPreferences? = nil,
+      systemPrompt: String? = nil,
+      includeContext: MessageContext? = nil,
+      temperature: Double? = nil,
+      maxTokens: Int? = nil,
+      stopSequences: [String]? = nil,
+      metadata: JSON? = nil)
+    {
+      self._meta = _meta
+      self.messages = messages
+      self.modelPreferences = modelPreferences
+      self.systemPrompt = systemPrompt
+      self.includeContext = includeContext
+      self.temperature = temperature
+      self.maxTokens = maxTokens
+      self.stopSequences = stopSequences
+      self.metadata = metadata
+    }
+
     public let _meta: MetaProgress?
     public let messages: [SamplingMessage]
     /// The server's preferences for which model to select. The client MAY ignore these preferences.
@@ -857,7 +1151,6 @@ public struct CreateSamplingMessageRequest: Request, HasParams, Codable {
 // MARK: - CreateMessageResult
 
 /// The client's response to a sampling/create_message request from the server. The client should inform the user before returning the sampled message, to allow them to inspect the response (human in the loop) and decide whether to allow the server to see it.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct CreateMessageResult: Result, SamplingMessageInterface, Codable {
   public let role: Role
   public let content: TextOrImageContent
@@ -866,6 +1159,14 @@ public struct CreateMessageResult: Result, SamplingMessageInterface, Codable {
   public let model: String
   /// The reason why sampling stopped, if known.
   public let stopReason: String?
+
+  public init(role: Role, content: TextOrImageContent, _meta: AnyMeta? = nil, model: String, stopReason: String? = nil) {
+    self.role = role
+    self.content = content
+    self._meta = _meta
+    self.model = model
+    self.stopReason = stopReason
+  }
 }
 
 // MARK: - SamplingMessageInterface
@@ -885,7 +1186,6 @@ public protocol Annotated {
 
 // MARK: - Annotations
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct Annotations: Codable, Equatable {
   /// Describes who the intended customer of this object or data is.
   /// It can include multiple entries to indicate content useful for multiple audiences (e.g., `["user", "assistant"]`).
@@ -897,23 +1197,31 @@ public struct Annotations: Codable, Equatable {
   /// @minimum 0
   /// @maximum 1
   public let priority: Double?
+
+  public init(audience: [Role]? = nil, priority: Double? = nil) {
+    self.audience = audience
+    self.priority = priority
+  }
 }
 
 // MARK: - TextContent
 
 /// Text provided to or from an LLM.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct TextContent: Annotated, Codable, Equatable {
   public let annotations: Annotations?
   public let type = ResourceTypes.text
   /// The text content of the message.
   public let text: String
+
+  public init(annotations: Annotations? = nil, text: String) {
+    self.annotations = annotations
+    self.text = text
+  }
 }
 
 // MARK: - ImageContent
 
 /// An image provided to or from an LLM.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ImageContent: Annotated, Codable, Equatable {
   public let annotations: Annotations?
   public let type = ResourceTypes.image
@@ -921,6 +1229,12 @@ public struct ImageContent: Annotated, Codable, Equatable {
   public let data: String
   /// The MIME type of the image. Different providers may support different image types.
   public let mimeType: String
+
+  public init(annotations: Annotations? = nil, data: String, mimeType: String) {
+    self.annotations = annotations
+    self.data = data
+    self.mimeType = mimeType
+  }
 }
 
 // MARK: - ModelPreferences
@@ -936,8 +1250,19 @@ public struct ImageContent: Annotated, Codable, Equatable {
 /// These preferences are always advisory. The client MAY ignore them. It is also
 /// up to the client to decide how to interpret these preferences and how to
 /// balance them against other considerations.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ModelPreferences: Codable, Equatable {
+  public init(
+    hints: [ModelHint]? = nil,
+    costPriority: Double? = nil,
+    speedPriority: Double? = nil,
+    intelligencePriority: Double? = nil)
+  {
+    self.hints = hints
+    self.costPriority = costPriority
+    self.speedPriority = speedPriority
+    self.intelligencePriority = intelligencePriority
+  }
+
   /// Optional hints to use for model selection.
   ///
   /// If multiple hints are specified, the client MUST evaluate them in order
@@ -970,6 +1295,7 @@ public struct ModelPreferences: Codable, Equatable {
   /// @minimum 0
   /// @maximum 1
   public let intelligencePriority: Double?
+
 }
 
 // MARK: - ModelHint
@@ -978,7 +1304,6 @@ public struct ModelPreferences: Codable, Equatable {
 ///
 /// Keys not declared here are currently left unspecified by the spec and are up
 /// to the client to interpret.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ModelHint: Codable, Equatable {
   /// A hint for a model name.
   ///
@@ -990,42 +1315,60 @@ public struct ModelHint: Codable, Equatable {
   /// The client MAY also map the string to a different provider's model name or a different model family, as long as it fills a similar niche; for example:
   ///  - `gemini-1.5-flash` could match `claude-3-haiku-20240307`
   public let name: String?
+
+  public init(name: String? = nil) {
+    self.name = name
+  }
 }
 
 // MARK: - CompleteRequest
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct CompleteRequest: Request, HasParams {
+  public init(params: Params) {
+    self.params = params
+  }
+
   public typealias Result = CompleteResult
 
-  public let method = Requests.autocomplete
-  public let params: Params
-
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
   public struct Params: HasMetaValue, Codable, Equatable {
-    public let _meta: MetaProgress?
-    public let ref: PromptOrResourceReference
-    public let argument: Argument
+    public init(_meta: MetaProgress? = nil, ref: PromptOrResourceReference, argument: Argument) {
+      self._meta = _meta
+      self.ref = ref
+      self.argument = argument
+    }
 
-    @MemberwiseInit(.public, _optionalsDefaultNil: true)
     public struct Argument: Codable, Equatable {
       /// The name of the argument
       public let name: String
       /// The value of the argument to use for completion matching.
       public let value: String
+
+      public init(name: String, value: String) {
+        self.name = name
+        self.value = value
+      }
     }
+
+    public let _meta: MetaProgress?
+    public let ref: PromptOrResourceReference
+    public let argument: Argument
+
   }
+
+  public let method = Requests.autocomplete
+  public let params: Params
+
 }
 
 // MARK: - CompleteResult
 
 /// The server's response to a completion/complete request
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct CompleteResult: Result {
-  public let _meta: AnyMeta?
-  public let completion: Completion
+  public init(_meta: AnyMeta? = nil, completion: Completion) {
+    self._meta = _meta
+    self.completion = completion
+  }
 
-  @MemberwiseInit(.public, _optionalsDefaultNil: true)
   public struct Completion: Codable {
     /// An array of completion values. Must not exceed 100 items.
     public let values: [String]
@@ -1033,28 +1376,44 @@ public struct CompleteResult: Result {
     public let total: Int?
     /// Indicates whether there are additional completion options beyond those provided in the current response, even if the exact total is unknown.
     public let hasMore: Bool?
+
+    public init(values: [String], total: Int? = nil, hasMore: Bool? = nil) {
+      self.values = values
+      self.total = total
+      self.hasMore = hasMore
+    }
   }
+
+  public let _meta: AnyMeta?
+  public let completion: Completion
+
 }
 
 // MARK: - ResourceReference
 
 /// A reference to a resource or resource template definition.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ResourceReference: Codable, Equatable {
   public let type = ResourceTypes.resourceReference
   /// The URI or URI template of the resource.
   /// @format uri-template
   public let uri: String
+
+  public init(uri: String) {
+    self.uri = uri
+  }
 }
 
 // MARK: - PromptReference
 
 /// Identifies a prompt.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct PromptReference: Codable, Equatable {
   public let type = ResourceTypes.promptReference
   /// The name of the prompt or prompt template
   public let name: String
+
+  public init(name: String) {
+    self.name = name
+  }
 }
 
 // MARK: - ListRootsRequest
@@ -1066,13 +1425,16 @@ public struct PromptReference: Codable, Equatable {
 ///
 /// This request is typically used when the server needs to understand the file system
 /// structure or access specific locations that the client has permission to read from.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListRootsRequest: Request, Codable {
 
   public typealias Result = ListRootsResult
 
   public let method = Requests.listRoots
   public let params: AnyParamsWithProgressToken?
+
+  public init(params: AnyParamsWithProgressToken? = nil) {
+    self.params = params
+  }
 }
 
 // MARK: - ListRootsResult
@@ -1080,17 +1442,21 @@ public struct ListRootsRequest: Request, Codable {
 /// The client's response to a roots/list request from the server.
 /// This result contains an array of Root objects, each representing a root directory
 /// or file that the server can operate on.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListRootsResult: PaginatedResult, Codable {
   public let _meta: AnyMeta?
   public let nextCursor: Cursor?
   public let roots: [Root]
+
+  public init(_meta: AnyMeta? = nil, nextCursor: Cursor? = nil, roots: [Root]) {
+    self._meta = _meta
+    self.nextCursor = nextCursor
+    self.roots = roots
+  }
 }
 
 // MARK: - Root
 
 /// Represents a root directory or file that the server can operate on.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct Root: Codable, Equatable {
   /// The URI identifying the root. This *must* start with file:// for now.
   /// This restriction may be relaxed in future versions of the protocol to allow
@@ -1102,6 +1468,11 @@ public struct Root: Codable, Equatable {
   /// identifier for the root, which may be useful for display purposes or for
   /// referencing the root in other parts of the application.
   public let name: String?
+
+  public init(uri: String, name: String? = nil) {
+    self.uri = uri
+    self.name = name
+  }
 }
 
 // MARK: - RootsListChangedNotification
@@ -1109,10 +1480,13 @@ public struct Root: Codable, Equatable {
 /// A notification from the client to the server, informing it that the list of roots has changed.
 /// This notification should be sent whenever the client adds, removes, or modifies any root.
 /// The server should then request an updated list of roots using the ListRootsRequest.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct RootsListChangedNotification: Notification {
   public let method = Notifications.rootsListChanged
   public let params: AnyParams?
+
+  public init(params: AnyParams? = nil) {
+    self.params = params
+  }
 }
 
 // MARK: - MessageContext
@@ -1125,11 +1499,15 @@ public enum MessageContext: String, Codable {
 
 // MARK: - SamplingMessage
 
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct SamplingMessage: SamplingMessageInterface, Codable, Equatable {
   public let role: Role
 
   public let content: TextOrImageContent
+
+  public init(role: Role, content: TextOrImageContent) {
+    self.role = role
+    self.content = content
+  }
 
 }
 

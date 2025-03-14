@@ -1,5 +1,5 @@
 {
-  "originHash" : "ca8a2b4edc1c41afb8ecd936a019651205225b4a18838bc0cf477f9c76a577ae",
+  "originHash" : "2dd6d7fd8e7b54addcf0578b84dfe65adeaa73d57835f77602ac38261772ee25",
   "pins" : [
     {
       "identity" : "jsonrpc",
@@ -17,15 +17,6 @@
       "state" : {
         "revision" : "0245656588b326abe1f331e5868bd211f8c7655f",
         "version" : "0.3.1"
-      }
-    },
-    {
-      "identity" : "swift-memberwise-init-macro",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/gohanlon/swift-memberwise-init-macro",
-      "state" : {
-        "revision" : "21ca6d8c8f9e4ce27e92f82da294e0d91953b8b6",
-        "version" : "0.5.1"
       }
     },
     {
