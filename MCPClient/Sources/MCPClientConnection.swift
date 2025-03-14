@@ -1,7 +1,6 @@
 import Foundation
 import JSONRPC
 import MCPInterface
-import MemberwiseInit
 
 // MARK: - MCPClientConnection
 

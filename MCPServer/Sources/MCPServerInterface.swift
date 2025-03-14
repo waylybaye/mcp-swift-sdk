@@ -2,7 +2,6 @@ import Foundation
 import JSONRPC
 import JSONSchemaBuilder
 import MCPInterface
-import MemberwiseInit
 
 // MARK: - MCPServerInterface
 
@@ -35,7 +34,6 @@ public protocol MCPServerInterface {
 /// Each supported capability provides the handlers required to respond to the relevant requests from the client.
 ///
 /// Note: This is similar to `ServerCapabilities`, with the addition of the handler function.
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ServerCapabilityHandlers {
   /// Present if the server supports sending log messages to the client.
   public let logging: SetLevelRequest.Handler?
@@ -50,7 +48,6 @@ public struct ServerCapabilityHandlers {
 // MARK: - ListedCapabilityHandler
 
 /// A capability that has a list of options (ex: prompts, tools, resources)
-@MemberwiseInit(.public, _optionalsDefaultNil: true)
 public struct ListedCapabilityHandler<Info, Handler, ListHandler> {
   public let info: Info
   public let handler: Handler
