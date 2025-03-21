@@ -3,7 +3,7 @@
 
 import Foundation
 
-#if os(macOS)
+#if !os(iOS) && !os(watchOS) && !os(tvOS)
 extension Process {
   /// Launches process.
   ///
