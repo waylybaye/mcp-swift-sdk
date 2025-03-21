@@ -42,6 +42,7 @@ extension JSONRPCSetupError: LocalizedError {
   }
 }
 
+#if os(macOS)
 extension Transport {
 
   /// Creates a new `Transport` by launching the given executable with the specified arguments and attaching to its standard IO.
@@ -278,8 +279,8 @@ extension Transport {
 
     return String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
   }
-
 }
+#endif
 
 // MARK: - Lifetime
 

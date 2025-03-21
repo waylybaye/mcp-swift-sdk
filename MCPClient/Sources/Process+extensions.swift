@@ -3,6 +3,7 @@
 
 import Foundation
 
+#if os(macOS)
 extension Process {
   /// Launches process.
   ///
@@ -85,3 +86,4 @@ extension CommandError: CustomStringConvertible {
     }
   }
 }
+#endif
