@@ -32,8 +32,7 @@ let package = Package(
         .product(name: "JSONRPC", package: "JSONRPC"),
         .target(name: "MCPInterface"),
       ],
-      path: "MCPClient/Sources",
-    ),
+      path: "MCPClient/Sources"),
     .target(
       name: "MCPServer",
       dependencies: [
