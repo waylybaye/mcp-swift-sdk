@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
   name: "MCP",
   platforms: [
-    .macOS(.v14),
-    .iOS(.v17)
+    .macOS(.v13),
+    .iOS(.v16)
   ],
   products: [
     .library(
@@ -32,7 +32,8 @@ let package = Package(
         .product(name: "JSONRPC", package: "JSONRPC"),
         .target(name: "MCPInterface"),
       ],
-      path: "MCPClient/Sources"),
+      path: "MCPClient/Sources",
+    ),
     .target(
       name: "MCPServer",
       dependencies: [
