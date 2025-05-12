@@ -132,7 +132,8 @@ public actor MCPClient: MCPClientInterface {
       throw MCPClientError.versionMismatch(received: response.protocolVersion, expected: MCP.protocolVersion)
     }
 
-    try await connection.acknowledgeInitialization()
+    // NOTE: some MCP servers don't accept initialized message and will close connection
+    // try await connection.acknowledgeInitialization()
 
     return ServerInfo(
       info: response.serverInfo,
